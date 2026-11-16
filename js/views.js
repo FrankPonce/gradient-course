@@ -1,7 +1,7 @@
 /* Gradient — views: router, dashboard, track, lesson, session runner, results, tests, progress, lab, coding */
 (function () {
   const E = GR.esc, $ = (s, r = document) => r.querySelector(s), pct = (v) => Math.round(v * 100);
-  const LCOL = ["#CFCAC2", "#E6508C", "#F59B00", "#46BEDC", "#8FAA00"];
+  const LCOL = ["var(--lv0)", "var(--lv1)", "var(--lv2)", "var(--lv3)", "var(--lv4)"];
   const main = () => $("#main");
   let timer = null;
 
@@ -91,7 +91,7 @@
       ${t.n ? "" : `<div class="callout"><div><b>New here? Start with the placement diagnostic.</b><br><span class="muted">30 questions across all five tracks. It seeds your skill map so recommendations are useful from the first day.</span></div><button class="btn primary" data-act="diagnostic">Take the diagnostic</button></div>`}
       <div class="grid2">
         <section class="card"><div class="ch"><h3>Recommended next</h3><button class="btn sm primary" data-act="smart">Targeted practice (12 questions)</button></div>${recList(null, 6)}</section>
-        <section class="card"><div class="ch"><h3>Recent activity</h3><a class="btn sm" href="#/progress">All progress</a></div>${recent.length ? recent.map((s) => `<a class="srow" href="#/results/${s.id}"><span class="dot" style="background:${(GR.trackOf(s.track) || { color: "#1D1B10" }).color}"></span><span class="st"><b>${E(s.title)}</b><small>${GR.fmtDate(s.ts)} · ${GR.fmtDur(s.dur)}</small></span><span class="lvl"><b>${s.score}/${s.total}</b>${s.scaled ? ` · ${s.scaled}` : ""}</span></a>`).join("") : `<p class="muted">Sessions you complete will appear here with scores and a full review.</p>`}</section>
+        <section class="card"><div class="ch"><h3>Recent activity</h3><a class="btn sm" href="#/progress">All progress</a></div>${recent.length ? recent.map((s) => `<a class="srow" href="#/results/${s.id}"><span class="dot" style="background:${(GR.trackOf(s.track) || { color: "var(--ink)" }).color}"></span><span class="st"><b>${E(s.title)}</b><small>${GR.fmtDate(s.ts)} · ${GR.fmtDur(s.dur)}</small></span><span class="lvl"><b>${s.score}/${s.total}</b>${s.scaled ? ` · ${s.scaled}` : ""}</span></a>`).join("") : `<p class="muted">Sessions you complete will appear here with scores and a full review.</p>`}</section>
       </div>
       <h3 class="sec">Tracks</h3>
       <div class="tracks">${GR.tracks.map((tr) => { const lv = [0, 0, 0, 0, 0]; tr.skills.forEach((s) => lv[GR.level(s)]++); return `<a class="tcard" href="#/track/${tr.id}" style="--tc:${tr.color}">${ring(GR.trackMastery(tr.id), tr.color, 72)}<div><h4>${E(tr.name)}</h4><p>${E(tr.blurb)}</p><div class="lvbar">${lv.map((n, i) => (n ? `<i style="flex:${n};background:${LCOL[i]}" title="${n} ${GR.LEVELS[i]}"></i>` : "")).join("")}</div><small>${tr.modules.length} modules · ${tr.skills.length} lessons · ${lv[4]} mastered</small></div></a>`; }).join("")}</div>
@@ -160,7 +160,7 @@
     const t = totals(), days = Object.keys(GR.state.snap).sort().slice(-30), ids = Object.keys(GR.skills), act = ids.filter((s) => (GR.state.skills[s] || {}).n >= 3);
     const byM = act.slice().sort((a, b) => GR.mastery(b) - GR.mastery(a)), up = ids.filter((s) => GR.trend(s) >= 0.2), dn = ids.filter((s) => GR.trend(s) !== null && GR.trend(s) <= -0.2);
     const scored = GR.state.sessions.filter((s) => s.total >= 5 && s.type !== "practice").slice(-30);
-    const sSeries = [...GR.tracks.map((tr) => ({ name: tr.name, color: tr.color, id: tr.id })), { name: "Cross-track", color: "#1D1B10", id: "mix" }].map((tr) => ({ name: tr.name, color: tr.color, pts: scored.map((s, i) => [i, pct(s.score / s.total), s.title, s.track]).filter((p) => p[3] === tr.id) }));
+    const sSeries = [...GR.tracks.map((tr) => ({ name: tr.name, color: tr.color, id: tr.id })), { name: "Cross-track", color: "var(--ink)", id: "mix" }].map((tr) => ({ name: tr.name, color: tr.color, pts: scored.map((s, i) => [i, pct(s.score / s.total), s.title, s.track]).filter((p) => p[3] === tr.id) }));
     const list = (arr, empty) => (arr.length ? arr.map((s) => skillRow(s, GR.trackOf(GR.skills[s].track).name)).join("") : `<p class="muted">${empty}</p>`);
     const first = days.length ? GR.state.snap[days[0]] : null;
     main().innerHTML = `${crumb(["Dashboard", "#/"], ["Progress"])}<header class="thead"><div><h1>Progress</h1><p class="lead">Mastery is estimated per skill from every answer, weighted by question difficulty. Harder questions answered correctly move it more.</p>
@@ -233,12 +233,14 @@
 
   /* ---------- router ---------- */
   const nav = () => { const h = location.hash || "#/"; $("#nav").innerHTML = `
-      <a class="brand" href="#/"><svg width="30" height="30" viewBox="0 0 30 30"><rect width="30" height="30" rx="8" fill="#1D1B10"/><path d="M6 21 C11 21 11 9 15 9 S19 17 24 8" fill="none" stroke="#F59B00" stroke-width="2.6" stroke-linecap="round"/><circle cx="24" cy="8" r="2.6" fill="#E6508C"/></svg><span class="bn"><b>GRADIENT</b><small>Got Rejected Again. Decided I’m (an) Ex-larper Now. Training.</small></span></a>
+      <a class="brand" href="#/"><svg class="mark" width="34" height="34" viewBox="-2 -2 36 36" aria-hidden="true"><path d="M3 24 C10 24 10 10 16 10 S22 20 26 8" fill="none" stroke="var(--ink)" stroke-width="2.4" stroke-linecap="round"/><path d="M26 0 L27.3 6.7 L34 8 L27.3 9.3 L26 16 L24.7 9.3 L18 8 L24.7 6.7 Z" fill="var(--or)"/><circle cx="26" cy="8" r="1.3" fill="var(--bg)"/></svg><span class="bn"><b>GRADIENT</b><small>Got Rejected Again. Decided I’m (an) Ex-larper Now. Training.</small></span></a>
       ${GR.session ? `<a class="resume" href="#/session">Resume: ${E(GR.session.title)}</a>` : ""}
       <a href="#/" class="${h === "#/" ? "on" : ""}">Dashboard</a>
       <div class="ng">Tracks</div>${GR.tracks.map((t) => `<a href="#/track/${t.id}" class="${h === "#/track/" + t.id || (h.startsWith("#/lesson/" + t.id + ".")) ? "on" : ""}"><span class="tk sm" style="background:${t.color}">${t.icon}</span><span class="nt">${E(t.name)}</span><em>${pct(GR.trackMastery(t.id))}%</em></a>`).join("")}
       <div class="ng">Practice</div><a href="#/tests" class="${h === "#/tests" ? "on" : ""}">Mock tests</a><a href="#/code" class="${h.startsWith("#/code") ? "on" : ""}">Coding practice</a><a href="#/lab" class="${h.startsWith("#/lab") ? "on" : ""}">Interactive lab</a>
-      <div class="ng">You</div><a href="#/progress" class="${h === "#/progress" ? "on" : ""}">Progress</a>`; };
+      <div class="ng">You</div><a href="#/progress" class="${h === "#/progress" ? "on" : ""}">Progress</a>
+      <button class="theme" data-act="theme" aria-label="Switch to ${dark() ? "light" : "dark"} mode">${dark() ? `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4.2"/><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M4.9 19.1l1.8-1.8M17.3 6.7l1.8-1.8"/></svg>` : `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M20.5 14.5A8.5 8.5 0 1 1 9.5 3.5a7 7 0 0 0 11 11z"/></svg>`}<span>${dark() ? "Light mode" : "Dark mode"}</span></button>`; };
+  const dark = () => document.documentElement.dataset.theme !== "light";
   const route = () => {
     clearInterval(timer); const [, a, b] = (location.hash || "#/").split("/");
     ({ track: () => vTrack(b), lesson: () => vLesson(b), session: vSession, results: () => vResults(b), tests: vTests, progress: vProgress, lab: () => vLab(b), code: () => (b ? vCode(b) : vCodeList()) }[a] || vDash)();
@@ -246,6 +248,7 @@
   };
 
   const acts = Object.assign({
+    theme: () => { const t = dark() ? "light" : "dark"; document.documentElement.dataset.theme = t; localStorage.setItem("gradient.theme", t); nav(); },
     practice: (d) => practiceSkill(d.sid), smart: (d) => smart(d.tid), mquiz: (d) => moduleQuiz(d.mid), mock: (d) => startMock(d.id), diagnostic,
     drill: (d) => { const sk = d.s.split(","); start({ type: "practice", title: "Drill: weakest skills from your last session", track: "mix", ref: "drill", skills: sk, n: Math.min(15, sk.length * 4) }); },
     rfilter: (d) => document.querySelectorAll("#review .rev").forEach((e) => (e.style.display = d.f === "wrong" && e.classList.contains("ok") ? "none" : "")),

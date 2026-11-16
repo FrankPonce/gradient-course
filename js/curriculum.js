@@ -4,7 +4,7 @@
 
   /* ============================== MACHINE LEARNING ============================== */
   GR.track({
-    id: "ml", name: "Machine Learning", color: "#F59B00", icon: "ML",
+    id: "ml", name: "Machine Learning", color: "var(--t-ml)", icon: "ML",
     blurb: "Classical ML end to end: how models learn, how to choose them, and how to tell whether they work.",
     modules: [
       { name: "Foundations of learning", topics: [
@@ -95,7 +95,7 @@
 
   /* ============================== AI / DEEP LEARNING ============================== */
   GR.track({
-    id: "ai", name: "Deep Learning & Generative AI", color: "#E6508C", icon: "AI",
+    id: "ai", name: "Deep Learning & Generative AI", color: "var(--t-ai)", icon: "AI",
     blurb: "Neural networks from a single neuron to transformers, LLMs, retrieval and agents.",
     modules: [
       { name: "Neural network fundamentals", topics: [
@@ -182,7 +182,7 @@
 
   /* ============================== DATA SCIENCE & STATISTICS ============================== */
   GR.track({
-    id: "ds", name: "Data Science & Statistics", color: "#0F4B73", icon: "DS",
+    id: "ds", name: "Data Science & Statistics", color: "var(--t-ds)", icon: "DS",
     blurb: "Probability, inference and the practical craft of turning raw data into defensible conclusions.",
     modules: [
       { name: "Probability", topics: [
@@ -266,7 +266,7 @@
 
   /* ============================== BUSINESS & DATA ANALYTICS ============================== */
   GR.track({
-    id: "ba", name: "Business & Data Analytics", color: "#46BEDC", icon: "BA",
+    id: "ba", name: "Business & Data Analytics", color: "var(--t-ba)", icon: "BA",
     blurb: "SQL, metrics, experimentation and communication: the analyst's toolkit for product and business decisions.",
     modules: [
       { name: "SQL", topics: [
@@ -345,7 +345,7 @@
 
   /* ============================== SOFTWARE ENGINEERING ============================== */
   GR.track({
-    id: "swe", name: "Software Engineering", color: "#8FAA00", icon: "SWE",
+    id: "swe", name: "Software Engineering", color: "var(--t-swe)", icon: "SWE",
     blurb: "Algorithms, data structures and system fundamentals, with hands-on coding practice.",
     modules: [
       { name: "Algorithmic foundations", topics: [

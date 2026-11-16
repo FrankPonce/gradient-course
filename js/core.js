@@ -80,31 +80,31 @@
   /* stimulus helpers */
   GR.tbl = (head, rows, cap) => `<div class="stw"><table class="stbl">${cap ? `<caption>${cap}</caption>` : ""}<tr>${head.map((h) => `<th>${h}</th>`).join("")}</tr>${rows.map((rw) => `<tr>${rw.map((c) => `<td>${c}</td>`).join("")}</tr>`).join("")}</table></div>`;
   GR.code = (s) => `<pre>${GR.esc(s)}</pre>`;
-  const VC = ["#0F4B73", "#F59B00", "#E6508C", "#8FAA00", "#46BEDC"];
+  const VC = ["var(--navy)", "var(--or)", "var(--pink)", "var(--green)", "var(--blue)"];
   GR.viz = {
     /* line chart: series = [{name, pts:[y...]}], labels = x labels */
     line({ series, labels = [], w = 520, h = 230, ymin, ymax, yl = "", title = "" }) {
       const all = series.flatMap((s) => s.pts); ymin = ymin === undefined ? Math.min(0, ...all) : ymin; ymax = ymax === undefined ? Math.max(...all) * 1.08 : ymax;
       const n = series[0].pts.length, x0 = 46, x1 = w - 12, y0 = h - 30, y1 = title ? 30 : 14, X = (i) => x0 + (i / Math.max(1, n - 1)) * (x1 - x0), Y = (v) => y0 - ((v - ymin) / (ymax - ymin)) * (y0 - y1);
-      let g = title ? `<text x="${x0}" y="16" font-size="12" font-weight="700" fill="#1D1B10">${title}</text>` : "";
-      for (let k = 0; k <= 4; k++) { const v = ymin + ((ymax - ymin) * k) / 4; g += `<line x1="${x0}" x2="${x1}" y1="${Y(v)}" y2="${Y(v)}" stroke="#E6E1DC"/><text x="${x0 - 6}" y="${Y(v) + 4}" text-anchor="end" font-size="10.5" fill="#9A968E">${+v.toFixed(2)}</text>`; }
-      const every = Math.ceil(n / 8); labels.forEach((l, i) => { if (i % every === 0 || i === n - 1) g += `<text x="${X(i)}" y="${h - 12}" text-anchor="middle" font-size="10.5" fill="#9A968E">${l}</text>`; });
+      let g = title ? `<text x="${x0}" y="16" font-size="12" font-weight="700" fill="var(--ink)">${title}</text>` : "";
+      for (let k = 0; k <= 4; k++) { const v = ymin + ((ymax - ymin) * k) / 4; g += `<line x1="${x0}" x2="${x1}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--rule)"/><text x="${x0 - 6}" y="${Y(v) + 4}" text-anchor="end" font-size="10.5" fill="var(--mute)">${+v.toFixed(2)}</text>`; }
+      const every = Math.ceil(n / 8); labels.forEach((l, i) => { if (i % every === 0 || i === n - 1) g += `<text x="${X(i)}" y="${h - 12}" text-anchor="middle" font-size="10.5" fill="var(--mute)">${l}</text>`; });
       series.forEach((s, k) => { const c = s.color || VC[k]; g += `<path d="${s.pts.map((v, i) => `${i ? "L" : "M"}${X(i).toFixed(1)},${Y(v).toFixed(1)}`).join("")}" fill="none" stroke="${c}" stroke-width="2.5"${s.dash ? ' stroke-dasharray="6 4"' : ""}/>` + s.pts.map((v, i) => `<circle cx="${X(i).toFixed(1)}" cy="${Y(v).toFixed(1)}" r="2.8" fill="${c}"/>`).join(""); });
-      if (yl) g += `<text x="4" y="${y1 - 2}" font-size="10.5" fill="#9A968E">${yl}</text>`;
+      if (yl) g += `<text x="4" y="${y1 - 2}" font-size="10.5" fill="var(--mute)">${yl}</text>`;
       return `<div class="vz"><svg viewBox="0 0 ${w} ${h}" style="max-width:${w}px">${g}</svg><div class="vzl">${series.map((s, k) => `<span><i style="background:${s.color || VC[k]}"></i>${s.name}</span>`).join("")}</div></div>`;
     },
     /* bar chart; ymin > 0 draws a deliberately truncated axis */
     bars({ labels, vals, w = 420, h = 220, ymin = 0, ymax, color = VC[0], fmt = (v) => v, title = "" }) {
       ymax = ymax === undefined ? Math.max(...vals) * 1.1 : ymax; const x0 = 44, x1 = w - 10, y0 = h - 30, y1 = title ? 34 : 18, bw = (x1 - x0) / vals.length, Y = (v) => y0 - ((v - ymin) / (ymax - ymin)) * (y0 - y1);
-      let g = title ? `<text x="${x0}" y="16" font-size="12" font-weight="700" fill="#1D1B10">${title}</text>` : "";
-      for (let k = 0; k <= 4; k++) { const v = ymin + ((ymax - ymin) * k) / 4; g += `<line x1="${x0}" x2="${x1}" y1="${Y(v)}" y2="${Y(v)}" stroke="#E6E1DC"/><text x="${x0 - 6}" y="${Y(v) + 4}" text-anchor="end" font-size="10.5" fill="#9A968E">${+v.toFixed(1)}</text>`; }
-      vals.forEach((v, i) => { g += `<rect x="${x0 + i * bw + bw * 0.18}" y="${Y(v)}" width="${bw * 0.64}" height="${Math.max(0, y0 - Y(v))}" rx="4" fill="${Array.isArray(color) ? color[i] : color}"/><text x="${x0 + i * bw + bw / 2}" y="${Y(v) - 5}" text-anchor="middle" font-size="11" font-weight="700" fill="#1D1B10">${fmt(v)}</text><text x="${x0 + i * bw + bw / 2}" y="${h - 12}" text-anchor="middle" font-size="10.5" fill="#5B5850">${labels[i]}</text>`; });
+      let g = title ? `<text x="${x0}" y="16" font-size="12" font-weight="700" fill="var(--ink)">${title}</text>` : "";
+      for (let k = 0; k <= 4; k++) { const v = ymin + ((ymax - ymin) * k) / 4; g += `<line x1="${x0}" x2="${x1}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--rule)"/><text x="${x0 - 6}" y="${Y(v) + 4}" text-anchor="end" font-size="10.5" fill="var(--mute)">${+v.toFixed(1)}</text>`; }
+      vals.forEach((v, i) => { g += `<rect x="${x0 + i * bw + bw * 0.18}" y="${Y(v)}" width="${bw * 0.64}" height="${Math.max(0, y0 - Y(v))}" rx="4" fill="${Array.isArray(color) ? color[i] : color}"/><text x="${x0 + i * bw + bw / 2}" y="${Y(v) - 5}" text-anchor="middle" font-size="11" font-weight="700" fill="var(--ink)">${fmt(v)}</text><text x="${x0 + i * bw + bw / 2}" y="${h - 12}" text-anchor="middle" font-size="10.5" fill="var(--ink2)">${labels[i]}</text>`; });
       return `<div class="vz"><svg viewBox="0 0 ${w} ${h}" style="max-width:${w}px">${g}</svg></div>`;
     },
     /* node-link graph: nodes {A:[x,y]}, edges [[a,b,label]] */
     graph({ nodes, edges, w = 460, h = 220 }) {
-      let g = ""; edges.forEach(([a, b, l]) => { const [x1, y1] = nodes[a], [x2, y2] = nodes[b]; g += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#9A968E" stroke-width="2"/>`; if (l !== undefined) g += `<rect x="${(x1 + x2) / 2 - 11}" y="${(y1 + y2) / 2 - 10}" width="22" height="19" rx="5" fill="#FBF8F4"/><text x="${(x1 + x2) / 2}" y="${(y1 + y2) / 2 + 4}" text-anchor="middle" font-size="12" font-weight="800" fill="#E6508C">${l}</text>`; });
-      Object.entries(nodes).forEach(([k, [x, y]]) => (g += `<circle cx="${x}" cy="${y}" r="18" fill="#fff" stroke="#0F4B73" stroke-width="2.5"/><text x="${x}" y="${y + 5}" text-anchor="middle" font-size="14" font-weight="800" fill="#1D1B10">${k}</text>`));
+      let g = ""; edges.forEach(([a, b, l]) => { const [x1, y1] = nodes[a], [x2, y2] = nodes[b]; g += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="var(--mute)" stroke-width="2"/>`; if (l !== undefined) g += `<rect x="${(x1 + x2) / 2 - 11}" y="${(y1 + y2) / 2 - 10}" width="22" height="19" rx="5" fill="var(--bg)"/><text x="${(x1 + x2) / 2}" y="${(y1 + y2) / 2 + 4}" text-anchor="middle" font-size="12" font-weight="800" fill="var(--pink)">${l}</text>`; });
+      Object.entries(nodes).forEach(([k, [x, y]]) => (g += `<circle cx="${x}" cy="${y}" r="18" fill="var(--paper)" stroke="var(--navy)" stroke-width="2.5"/><text x="${x}" y="${y + 5}" text-anchor="middle" font-size="14" font-weight="800" fill="var(--ink)">${k}</text>`));
       return `<div class="vz"><svg viewBox="0 0 ${w} ${h}" style="max-width:${w}px">${g}</svg></div>`;
     },
   };

@@ -35,7 +35,7 @@
 
   S("ds.descriptive", "Summarising salaries with an outlier", (r) => {
     const v = r.shuffle([32, 35, 38, 41, 44, 47, 50, 53, 56, 59, 62]).slice(0, 8).sort((a, b) => a - b), out = r.pick([180, 220, 260]), all = [...v, out], mean = sum(all) / 9, med = all[4], med2 = (v[3] + v[4]) / 2, mean2 = sum(v) / 8;
-    return { stim: `<p>Annual salaries (in $k) of the nine people in a small team:</p>` + V.bars({ labels: all.map((_, i) => "P" + (i + 1)), vals: all, w: 480, h: 200, color: all.map((x) => (x === out ? "#E6508C" : "#0F4B73")) }),
+    return { stim: `<p>Annual salaries (in $k) of the nine people in a small team:</p>` + V.bars({ labels: all.map((_, i) => "P" + (i + 1)), vals: all, w: 480, h: 200, color: all.map((x) => (x === out ? "var(--pink)" : "var(--navy)")) }),
       parts: [
         ["ds.descriptive", 1, "What is the median salary?", N(med, [mean, all[3], all[5], out], (x) => "$" + f1(x) + "k"), `Sorted, the 5th of 9 values is ${med}.`],
         ["ds.descriptive", 1, "What is the mean salary?", N(mean, [med, mean2, sum(all) / 8, out / 2], (x) => "$" + f1(x) + "k"), `Sum = ${sum(all)}; divided by 9 = ${f1(mean)}.`],
@@ -210,7 +210,7 @@ GROUP BY c.name;`),
   });
 
   S("ba.viz", "A misleading chart", {
-    stim: `<p>A slide shown at a quarterly review, titled “Customer satisfaction soars after redesign”. Satisfaction is a 0–100 score.</p>` + V.bars({ labels: ["Q1", "Q2", "Q3 (redesign)", "Q4"], vals: [78, 78.4, 79.6, 80.2], ymin: 77.5, ymax: 80.5, w: 440, h: 220, color: ["#9A968E", "#9A968E", "#F59B00", "#F59B00"], title: "Customer satisfaction score" }),
+    stim: `<p>A slide shown at a quarterly review, titled “Customer satisfaction soars after redesign”. Satisfaction is a 0–100 score.</p>` + V.bars({ labels: ["Q1", "Q2", "Q3 (redesign)", "Q4"], vals: [78, 78.4, 79.6, 80.2], ymin: 77.5, ymax: 80.5, w: 440, h: 220, color: ["var(--mute)", "var(--mute)", "var(--or)", "var(--or)"], title: "Customer satisfaction score" }),
     parts: [
       ["ba.viz", 1, "What makes this chart misleading?", ["The value axis starts at 77.5, so small differences look enormous", "It uses bars", "It has four categories", "It has a title"], "Bar length is read as magnitude. Truncating the axis makes Q4's bar look many times taller than Q1's."],
       ["ba.viz", 2, "By how much did the score actually rise from Q1 to Q4?", ["About 2.8%", "About 28%", "About 80%", "It more than tripled"], "(80.2 − 78) / 78 = 2.8%. The bars suggest a multiple, not a few percent."],

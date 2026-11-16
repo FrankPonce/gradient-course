@@ -2,7 +2,7 @@
    Each diagram: GR.diagrams[id] = { title, blurb, skills, tasks, mount(host) }. */
 (function () {
   const NS = "http://www.w3.org/2000/svg";
-  const K = { or: "#F59B00", navy: "#0F4B73", blue: "#46BEDC", pink: "#E6508C", green: "#8FAA00", ink: "#1D1B10", ink2: "#5B5850", mute: "#9A968E", rule: "#E6E1DC", card: "#F3EFEA", bg: "#FBF8F4" };
+  const K = { or: "var(--or)", navy: "var(--navy)", blue: "var(--blue)", pink: "var(--pink)", green: "var(--green)", ink: "var(--ink)", ink2: "var(--ink2)", mute: "var(--mute)", rule: "var(--rule)", card: "var(--card)", bg: "var(--bg)" };
   const S = (t, a = {}, p) => { const e = document.createElementNS(NS, t); for (const k in a) e.setAttribute(k, a[k]); if (p) p.appendChild(e); return e; };
   const T = (p, x, y, s, a = {}) => { const e = S("text", Object.assign({ x, y, "font-size": 12, fill: K.ink2 }, a), p); e.textContent = s; return e; };
   const frame = (host, w = 720, h = 360) => { host.innerHTML = `<div class="dg-ctl"></div><svg class="dg-svg" viewBox="0 0 ${w} ${h}" role="img"></svg><div class="dg-read"></div>`; return { ctl: host.children[0], svg: host.children[1], read: host.children[2], w, h }; };
@@ -50,7 +50,7 @@
       let fn = F.bowl, lr = 0.1, w = 3.6, trail = [w], x, y;
       const gS = S("g", {}, svg), gT = S("g", {}, svg);
       const tan = S("line", { stroke: K.pink, "stroke-width": 2, "stroke-dasharray": "5 4" }, svg);
-      const ball = S("circle", { r: 9, fill: K.or, stroke: "#fff", "stroke-width": 2, style: "transition:cx .28s,cy .28s" }, svg);
+      const ball = S("circle", { r: 9, fill: K.or, stroke: "var(--paper)", "stroke-width": 2, style: "transition:cx .28s,cy .28s" }, svg);
       const stat = () => { gS.innerHTML = ""; x = sc(-4, 4, 50, 690); y = sc(0, fn.ymax, 310, 20); axis(gS, x, y, [-4, -2, 0, 2, 4], [0, fn.ymax / 2, fn.ymax].map((v) => +v.toFixed(1)), "parameter w", "loss L(w)");
         const pts = []; for (let i = 0; i <= 200; i++) { const v = -4 + i * 0.04; pts.push([x(v), y(Math.min(fn.ymax, fn.f(v)))]); } S("path", { d: line(pts), fill: "none", stroke: K.navy, "stroke-width": 3 }, gS); };
       const draw = () => {
@@ -88,7 +88,7 @@
         S("path", { d: line(tp), fill: "none", stroke: K.mute, "stroke-width": 2, "stroke-dasharray": "5 5" }, svg);
         te.forEach(([a, b]) => S("circle", { cx: x(a), cy: y(clamp(b, -2, 2)), r: 2.5, fill: K.blue, opacity: 0.5 }, svg));
         S("path", { d: line(fp), fill: "none", stroke: K.or, "stroke-width": 3.5 }, svg);
-        tr.forEach(([a, b]) => S("circle", { cx: x(a), cy: y(clamp(b, -2, 2)), r: 5, fill: K.navy, stroke: "#fff", "stroke-width": 1.5 }, svg));
+        tr.forEach(([a, b]) => S("circle", { cx: x(a), cy: y(clamp(b, -2, 2)), r: 5, fill: K.navy, stroke: "var(--paper)", "stroke-width": 1.5 }, svg));
         // error-vs-degree panel
         const ex = sc(1, 9, 500, 700), top = Math.min(1.2, Math.max(...errs.slice(1).map((e) => e[1]))) * 1.05, ey = sc(0, top, 310, 60); axis(svg, ex, ey, [1, 3, 5, 7, 9], [0, +(top / 2).toFixed(2), +top.toFixed(2)], "polynomial degree", "mean squared error");
         [[0, K.navy, "train"], [1, K.blue, "test"]].forEach(([i, c, l]) => { S("path", { d: line(errs.slice(1).map((e, k) => [ex(k + 1), ey(Math.min(top, e[i]))])), fill: "none", stroke: c, "stroke-width": 2.5 }, svg); T(svg, 704, ey(Math.min(top, errs[9][i])) + (i ? -6 : 12), l, { "text-anchor": "end", fill: c, "font-weight": 700 }); });
@@ -117,7 +117,7 @@
         if (n > 1) { P.forEach((p) => S("line", { x1: x(p[0]), x2: x(p[0]), y1: y(p[1]), y2: y(clamp(a + b * p[0], -5, 15)), stroke: K.pink, "stroke-width": 2, opacity: 0.7 }, svg));
           S("line", { x1: x(0), x2: x(10), y1: y(a), y2: y(a + 10 * b), stroke: K.or, "stroke-width": 3.5, "clip-path": "none" }, svg);
           S("circle", { cx: x(mx), cy: y(my), r: 5, fill: "none", stroke: K.or, "stroke-width": 2 }, svg); }
-        P.forEach((p, i) => S("circle", { cx: x(p[0]), cy: y(p[1]), r: 8, fill: K.navy, stroke: "#fff", "stroke-width": 2, "data-i": i, style: "cursor:grab" }, svg));
+        P.forEach((p, i) => S("circle", { cx: x(p[0]), cy: y(p[1]), r: 8, fill: K.navy, stroke: "var(--paper)", "stroke-width": 2, "data-i": i, style: "cursor:grab" }, svg));
         chips(read, [["points", n], ["slope", b.toFixed(3)], ["intercept", a.toFixed(3)], ["R²", r2.toFixed(3), K.or], ["MSE", (sse / n).toFixed(3), K.pink], ["correlation r", (Math.sign(b) * Math.sqrt(Math.max(0, r2))).toFixed(3)]], "Pink segments are residuals. The line always passes through the ring at (mean x, mean y).");
       };
       svg.style.touchAction = "none";
@@ -146,7 +146,7 @@
         axis(svg, rx, ry, [0, 0.5, 1], [0, 0.5, 1], "false positive rate", "ROC: true positive rate");
         S("line", { x1: rx(0), y1: ry(0), x2: rx(1), y2: ry(1), stroke: K.rule, "stroke-dasharray": "4 4" }, svg);
         const roc = []; for (let i = 0; i <= 100; i++) { const v = 1.2 - (1.4 * i) / 100; roc.push([rx(fpr(v)), ry(tpr(v))]); } S("path", { d: line(roc), fill: "none", stroke: K.navy, "stroke-width": 2.5 }, svg);
-        S("circle", { cx: rx(fpr(t)), cy: ry(tpr(t)), r: 7, fill: K.or, stroke: "#fff", "stroke-width": 2 }, svg);
+        S("circle", { cx: rx(fpr(t)), cy: ry(tpr(t)), r: 7, fill: K.or, stroke: "var(--paper)", "stroke-width": 2 }, svg);
         const auc = Phi(sep / (sd * Math.SQRT2)), N = 1000, pos = N * prev, neg = N - pos, TP = pos * tpr(t), FN = pos - TP, FP = neg * fpr(t), TN = neg - FP, pr = TP + FP ? TP / (TP + FP) : 1, rc = tpr(t);
         T(svg, 600, 60, "AUC " + auc.toFixed(3), { "text-anchor": "middle", "font-size": 15, "font-weight": 800, fill: K.navy });
         chips(read, [["TP", Math.round(TP), K.green], ["FP", Math.round(FP), K.pink], ["FN", Math.round(FN), K.navy], ["TN", Math.round(TN)], ["precision", (pr * 100).toFixed(1) + "%", K.or], ["recall", (rc * 100).toFixed(1) + "%", K.or], ["F1", ((2 * pr * rc) / (pr + rc || 1)).toFixed(3)], ["accuracy", (((TP + TN) / N) * 100).toFixed(1) + "%"]], "Counts are per 1,000 cases. Green = caught positives, pink = false alarms, navy = missed positives.");
@@ -197,13 +197,13 @@
       const pi = [[110, 110], [110, 230]], ph = [[360, 70], [360, 170], [360, 270]], po = [610, 170];
       const edges = []; ph.forEach((h, j) => pi.forEach((p, i) => edges.push({ a: p, b: h, get: () => W1[j][i], set: (v) => (W1[j][i] = v), n: `x${i + 1} → h${j + 1}` }))); ph.forEach((h, j) => edges.push({ a: h, b: po, get: () => W2[j], set: (v) => (W2[j] = v), n: `h${j + 1} → output` }));
       const gE = S("g", {}, svg), gN = S("g", {}, svg), gPulse = S("g", {}, svg);
-      const fill = (v) => { const a = clamp(Math.abs(v), 0, 1); return v >= 0 ? `rgba(245,155,0,${0.12 + a * 0.88})` : `rgba(230,80,140,${0.12 + a * 0.88})`; };
+      const fill = (v) => { const a = clamp(Math.abs(v), 0, 1); return v >= 0 ? `color-mix(in srgb, var(--or) ${Math.round((0.12 + a * 0.88) * 100)}%, transparent)` : `color-mix(in srgb, var(--pink) ${Math.round((0.12 + a * 0.88) * 100)}%, transparent)`; };
       const draw = (pulse) => {
         const H = W1.map((w, j) => fa[act](w[0] * X[0] + w[1] * X[1] + b1[j])), z = H.reduce((s, h, j) => s + h * W2[j], b2), out = GR.sig(z);
         gE.innerHTML = ""; gN.innerHTML = "";
         edges.forEach((e, i) => { const w = e.get(); S("line", { x1: e.a[0], y1: e.a[1], x2: e.b[0], y2: e.b[1], stroke: w >= 0 ? K.navy : K.pink, "stroke-width": 1 + Math.abs(w) * 2.4, opacity: i === sel ? 1 : 0.45, "stroke-linecap": "round" }, gE); S("line", { x1: e.a[0], y1: e.a[1], x2: e.b[0], y2: e.b[1], stroke: "transparent", "stroke-width": 16, "data-e": i, style: "cursor:pointer" }, gE);
           if (i === sel) T(gE, (e.a[0] + e.b[0]) / 2, (e.a[1] + e.b[1]) / 2 - 8, "w = " + w.toFixed(1), { "text-anchor": "middle", "font-weight": 800, fill: K.ink, "font-size": 13 }); });
-        const node = (p, v, l) => { S("circle", { cx: p[0], cy: p[1], r: 30, fill: "#fff", stroke: K.ink, "stroke-width": 2 }, gN); S("circle", { cx: p[0], cy: p[1], r: 30, fill: fill(v) }, gN); T(gN, p[0], p[1] + 5, v.toFixed(2), { "text-anchor": "middle", "font-size": 14, "font-weight": 800, fill: K.ink }); T(gN, p[0], p[1] - 38, l, { "text-anchor": "middle", fill: K.mute, "font-weight": 600 }); };
+        const node = (p, v, l) => { S("circle", { cx: p[0], cy: p[1], r: 30, fill: "var(--paper)", stroke: K.ink, "stroke-width": 2 }, gN); S("circle", { cx: p[0], cy: p[1], r: 30, fill: fill(v) }, gN); T(gN, p[0], p[1] + 5, v.toFixed(2), { "text-anchor": "middle", "font-size": 14, "font-weight": 800, fill: K.ink }); T(gN, p[0], p[1] - 38, l, { "text-anchor": "middle", fill: K.mute, "font-weight": 600 }); };
         pi.forEach((p, i) => node(p, X[i], "input x" + (i + 1))); ph.forEach((p, j) => node(p, H[j], "hidden h" + (j + 1))); node(po, out, "output (sigmoid)");
         chips(read, [["selected", edges[sel].n, K.or], ["h₁, h₂, h₃", H.map((h) => h.toFixed(2)).join(", ")], ["pre-activation z", z.toFixed(3)], ["output σ(z)", out.toFixed(3), K.or]], "Navy connections carry positive weights, pink negative; thickness shows magnitude. Node colour shows activation.");
         if (pulse) { gPulse.innerHTML = ""; edges.forEach((e, i) => { const c = S("circle", { r: 4, fill: K.or, cx: e.a[0], cy: e.a[1], opacity: 0 }, gPulse); const delay = i < 6 ? 0 : 420; c.animate([{ transform: "translate(0,0)", opacity: 1 }, { transform: `translate(${e.b[0] - e.a[0]}px,${e.b[1] - e.a[1]}px)`, opacity: 1 }], { duration: 420, delay, easing: "ease-in-out" }); }); }
@@ -228,8 +228,8 @@
       const draw = () => {
         svg.innerHTML = ""; const w = weights(), mx = Math.max(...w);
         tok.forEach((t, j) => { if (j !== q) { const mid = (cx(q) + cx(j)) / 2, lift = 30 + Math.abs(q - j) * 16; S("path", { d: `M${cx(q)},${ty - 16} Q${mid},${ty - 16 - lift * 1.6} ${cx(j)},${ty - 16}`, fill: "none", stroke: K.pink, "stroke-width": 0.6 + w[j] * 22, opacity: 0.15 + (w[j] / mx) * 0.8, "stroke-linecap": "round" }, svg); }
-          S("rect", { x: cx(j) - bw / 2 + 3, y: ty - 16, width: bw - 6, height: 32, rx: 8, fill: j === q ? K.ink : "#fff", stroke: j === q ? K.ink : K.rule, "stroke-width": 1.5, "data-j": j, style: "cursor:pointer" }, svg);
-          T(svg, cx(j), ty + 5, t, { "text-anchor": "middle", "font-size": 13, "font-weight": 700, fill: j === q ? "#fff" : K.ink, style: "pointer-events:none" });
+          S("rect", { x: cx(j) - bw / 2 + 3, y: ty - 16, width: bw - 6, height: 32, rx: 8, fill: j === q ? K.ink : "var(--paper)", stroke: j === q ? K.ink : K.rule, "stroke-width": 1.5, "data-j": j, style: "cursor:pointer" }, svg);
+          T(svg, cx(j), ty + 5, t, { "text-anchor": "middle", "font-size": 13, "font-weight": 700, fill: j === q ? "var(--on-ink)" : K.ink, style: "pointer-events:none" });
           const bh = (w[j] / Math.max(0.5, mx)) * 60; S("rect", { x: cx(j) - 14, y: ty + 28, width: 28, height: bh, rx: 4, fill: j === q ? K.mute : K.pink, opacity: 0.85 }, svg);
           T(svg, cx(j), ty + 42 + bh, (w[j] * 100).toFixed(0) + "%", { "text-anchor": "middle", "font-size": 11, "font-weight": 700, fill: K.ink2 }); });
         const top = w.map((v, j) => [v, j]).filter((p) => p[1] !== q).sort((a, b) => b[0] - a[0]).slice(0, 3), H = -w.reduce((a, v) => a + v * Math.log2(v), 0);
