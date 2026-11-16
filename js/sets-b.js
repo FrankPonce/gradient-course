@@ -1,7 +1,7 @@
 /* Case sets — Data Science & Statistics, Business & Data Analytics */
 (function () {
   const S = GR.S, N = GR.nopts, T = GR.tbl, C = GR.code, V = GR.viz;
-  const f1 = (x) => x.toFixed(1), f2 = (x) => x.toFixed(2), pc = (x) => (x * 100).toFixed(1) + "%", usd = (x) => "$" + Math.round(x).toLocaleString();
+  const f1 = (x) => x.toFixed(1), f2 = (x) => x.toFixed(2), pc = (x) => (x * 100).toFixed(1) + "%", usd = (x) => "$" + Math.round(x).toLocaleString("en-US");
   const sum = (a) => a.reduce((x, y) => x + y, 0);
 
   /* ================= DATA SCIENCE & STATISTICS ================= */
@@ -33,7 +33,7 @@
       ] };
   });
 
-  S("ds.descriptive", "Summarising salaries with an outlier", (r) => {
+  S("ds.descriptive", "Summarizing salaries with an outlier", (r) => {
     const v = r.shuffle([32, 35, 38, 41, 44, 47, 50, 53, 56, 59, 62]).slice(0, 8).sort((a, b) => a - b), out = r.pick([180, 220, 260]), all = [...v, out], mean = sum(all) / 9, med = all[4], med2 = (v[3] + v[4]) / 2, mean2 = sum(v) / 8;
     return { stim: `<p>Annual salaries (in $k) of the nine people in a small team:</p>` + V.bars({ labels: all.map((_, i) => "P" + (i + 1)), vals: all, w: 480, h: 200, color: all.map((x) => (x === out ? "var(--pink)" : "var(--navy)")) }),
       parts: [
@@ -52,8 +52,8 @@
       ["ds.corr", 2, "Which hospital has the better survival rate for severe cases, and for mild cases?", ["Hospital B for both", "Hospital A for both", "A for mild, B for severe", "B for mild, A for severe"], "B wins 98.3% to 96.7% on mild cases and 52.5% to 30.0% on severe ones."],
       ["ds.corr", 2, "What is this reversal called?", ["Simpson's paradox", "Regression to the mean", "Survivorship bias", "The base-rate fallacy"], "A trend present in every subgroup reverses when the groups are pooled."],
       ["ds.corr", 3, "Why does it happen here?", ["Hospital B treats four times as many severe cases, which drag down its overall rate", "Hospital A has better surgeons", "The samples are too small", "Survival was measured differently"], "Case mix is a confounder: severity affects both which hospital a patient goes to and whether they survive."],
-      ["ds.corr", 3, "You need this procedure and your case is severe. Which hospital do the data favour?", ["Hospital B", "Hospital A", "Either; the overall rates decide", "Neither can be compared"], "Compare like with like. For severe cases B's survival is 52.5% against A's 30.0%."],
-      ["ba.pitfalls", 3, "An A/B test shows the same pattern: treatment wins overall but loses within mobile and within desktop. What should you check first?", ["Whether the two arms received different device mixes, which indicates broken randomisation", "Whether the test ran long enough", "Whether the metric is a ratio", "Nothing; ship the treatment"], "With proper randomisation the arms have the same mix, and Simpson's paradox cannot arise between them.", ["ds.corr"]],
+      ["ds.corr", 3, "You need this procedure and your case is severe. Which hospital do the data favor?", ["Hospital B", "Hospital A", "Either; the overall rates decide", "Neither can be compared"], "Compare like with like. For severe cases B's survival is 52.5% against A's 30.0%."],
+      ["ba.pitfalls", 3, "An A/B test shows the same pattern: treatment wins overall but loses within mobile and within desktop. What should you check first?", ["Whether the two arms received different device mixes, which indicates broken randomization", "Whether the test ran long enough", "Whether the metric is a ratio", "Nothing; ship the treatment"], "With proper randomization the arms have the same mix, and Simpson's paradox cannot arise between them.", ["ds.corr"]],
     ],
   });
 
@@ -84,7 +84,7 @@
 
   S("ds.bayes", "A spam filter's word counts", (r) => {
     const spam = r.pick([200, 300, 400]), ham = 1000 - spam, ws = Math.round(spam * r.pick([0.5, 0.6, 0.8])), wh = Math.round(ham * r.pick([0.05, 0.1])), post = ws / (ws + wh);
-    return { stim: `<p>1,000 labelled emails, counted by whether they contain the word “winner”.</p>` + T(["", "Contains “winner”", "Does not", "Total"], [["Spam", ws, spam - ws, spam], ["Not spam", wh, ham - wh, ham], ["Total", ws + wh, 1000 - ws - wh, 1000]]),
+    return { stim: `<p>1,000 labeled emails, counted by whether they contain the word “winner”.</p>` + T(["", "Contains “winner”", "Does not", "Total"], [["Spam", ws, spam - ws, spam], ["Not spam", wh, ham - wh, ham], ["Total", ws + wh, 1000 - ws - wh, 1000]]),
       parts: [
         ["ds.prob", 1, "What is the prior probability that an email is spam?", N(spam / 1000, [ws / 1000, post, ws / spam, ham / 1000], pc), `${spam} of 1,000 emails are spam: ${pc(spam / 1000)}.`],
         ["ds.prob", 2, "What is P(“winner” | spam)?", N(ws / spam, [post, ws / 1000, (ws + wh) / 1000, wh / ham], pc), `Of ${spam} spam emails, ${ws} contain the word: ${pc(ws / spam)}.`],
@@ -115,14 +115,14 @@ p-value (two-sided):               0.039
   });
 
   S("ds.features", "Preparing a feature table", {
-    stim: `<p>A dataset for predicting whether a customer will churn. A logistic regression with L2 regularisation will be trained on it.</p>` + T(["customer_id", "plan", "city", "monthly_spend", "tenure_days", "satisfaction", "churned"], [["10482", "basic", "Lyon", "12.50", "40", "low", "1"], ["10483", "pro", "Paris", "89.00", "1,210", "high", "0"], ["10484", "basic", "Nice", "9.99", "365", "medium", "0"], ["10485", "enterprise", "Paris", "2,400.00", "880", "high", "0"], ["…", "…", "… (4,000 distinct cities)", "…", "…", "…", "…"]]),
+    stim: `<p>A dataset for predicting whether a customer will churn. A logistic regression with L2 regularization will be trained on it.</p>` + T(["customer_id", "plan", "city", "monthly_spend", "tenure_days", "satisfaction", "churned"], [["10482", "basic", "Lyon", "12.50", "40", "low", "1"], ["10483", "pro", "Paris", "89.00", "1,210", "high", "0"], ["10484", "basic", "Nice", "9.99", "365", "medium", "0"], ["10485", "enterprise", "Paris", "2,400.00", "880", "high", "0"], ["…", "…", "… (4,000 distinct cities)", "…", "…", "…", "…"]]),
     parts: [
       ["ds.features", 1, "How should <code>plan</code> (basic / pro / enterprise, no natural numeric meaning assumed) be encoded?", ["One-hot encoding", "As 1, 2, 3 and treated as a quantity", "As the row number", "Dropped, because it is text"], "One-hot avoids imposing a spacing between categories."],
       ["ds.features", 2, "How should <code>satisfaction</code> (low / medium / high) be encoded?", ["As ordered integers, since the levels have a natural order", "One-hot only; order must never be used", "As random integers", "As customer_id"], "Ordinal categories can keep their order as 0, 1, 2. One-hot would also work but discards the ordering."],
       ["ds.features", 3, "What is the problem with one-hot encoding <code>city</code>?", ["4,000 sparse columns, most with very few rows each", "Cities cannot be encoded", "It would leak the target", "It makes the model non-linear"], "High-cardinality categories explode the feature space. Options: group rare cities, target-encode out-of-fold, or hash."],
-      ["ds.features", 2, "Why must <code>monthly_spend</code> and <code>tenure_days</code> be scaled for this model?", ["The L2 penalty and the optimiser both depend on feature scale", "Logistic regression rejects values above 1", "To make them categorical", "Scaling is only for trees"], "Without scaling, the penalty treats coefficients of differently scaled features unequally, and gradient descent converges slowly."],
+      ["ds.features", 2, "Why must <code>monthly_spend</code> and <code>tenure_days</code> be scaled for this model?", ["The L2 penalty and the optimizer both depend on feature scale", "Logistic regression rejects values above 1", "To make them categorical", "Scaling is only for trees"], "Without scaling, the penalty treats coefficients of differently scaled features unequally, and gradient descent converges slowly."],
       ["ds.features", 2, "<code>monthly_spend</code> ranges from about 10 to 2,400 and is heavily right-skewed. A useful transform is:", ["Taking the logarithm", "Squaring it", "Rounding to the nearest thousand", "Reversing its sign"], "A log compresses the long right tail so one enterprise customer does not dominate."],
-      ["ml.cv", 2, "Should <code>customer_id</code> be used as a feature?", ["No: it is an arbitrary identifier that a model can only memorise", "Yes, as a numeric feature", "Yes, one-hot encoded", "Yes, after scaling"], "Identifiers carry no generalisable signal and invite overfitting or leakage.", ["ds.features"]],
+      ["ml.cv", 2, "Should <code>customer_id</code> be used as a feature?", ["No: it is an arbitrary identifier that a model can only memorize", "Yes, as a numeric feature", "Yes, one-hot encoded", "Yes, after scaling"], "Identifiers carry no generalizable signal and invite overfitting or leakage.", ["ds.features"]],
     ],
   });
 
@@ -174,13 +174,13 @@ GROUP BY c.name;`),
   S("ba.kpi", "A funnel by acquisition channel", (r) => {
     const v = [r.pick([10000, 20000]), r.pick([40000, 50000])], sr = [r.pick([0.1, 0.2]), r.pick([0.04, 0.05])], pr = [r.pick([0.25, 0.3, 0.4]), r.pick([0.1, 0.2, 0.5])], aov = r.pick([40, 50, 80]);
     const s = v.map((x, i) => Math.round(x * sr[i])), p = s.map((x, i) => Math.round(x * pr[i])), cv = p.map((x, i) => x / v[i]), blended = sum(p) / sum(v), bestP = pr[0] > pr[1] ? "Search" : "Social";
-    return { stim: `<p>Last month's funnel for two acquisition channels. Average order value is $${aov}.</p>` + T(["Channel", "Visits", "Sign-ups", "Purchases"], [["Search", v[0].toLocaleString(), s[0].toLocaleString(), p[0].toLocaleString()], ["Social", v[1].toLocaleString(), s[1].toLocaleString(), p[1].toLocaleString()]]),
+    return { stim: `<p>Last month's funnel for two acquisition channels. Average order value is $${aov}.</p>` + T(["Channel", "Visits", "Sign-ups", "Purchases"], [["Search", v[0].toLocaleString("en-US"), s[0].toLocaleString("en-US"), p[0].toLocaleString("en-US")], ["Social", v[1].toLocaleString("en-US"), s[1].toLocaleString("en-US"), p[1].toLocaleString("en-US")]]),
       parts: [
-        ["ba.kpi", 1, "What is the visit → purchase conversion rate for Search?", N(cv[0], [sr[0], pr[0], cv[1], blended], (x) => (x * 100).toFixed(2) + "%"), `${p[0]} / ${v[0].toLocaleString()} = ${(cv[0] * 100).toFixed(2)}%. Equivalently ${sr[0] * 100}% × ${pr[0] * 100}%.`],
+        ["ba.kpi", 1, "What is the visit → purchase conversion rate for Search?", N(cv[0], [sr[0], pr[0], cv[1], blended], (x) => (x * 100).toFixed(2) + "%"), `${p[0]} / ${v[0].toLocaleString("en-US")} = ${(cv[0] * 100).toFixed(2)}%. Equivalently ${sr[0] * 100}% × ${pr[0] * 100}%.`],
         ["ba.kpi", 2, "Which channel converts sign-ups to purchases at the higher rate?", [bestP, bestP === "Search" ? "Social" : "Search", "They are equal", "It cannot be computed"], `Search: ${p[0]}/${s[0]} = ${pc(pr[0])}. Social: ${p[1]}/${s[1]} = ${pc(pr[1])}.`],
-        ["ba.kpi", 2, "What is the blended visit → purchase conversion across both channels?", N(blended, [(cv[0] + cv[1]) / 2, cv[0], cv[1], sum(s) / sum(v)], (x) => (x * 100).toFixed(2) + "%"), `Total purchases / total visits = ${sum(p).toLocaleString()} / ${sum(v).toLocaleString()} = ${(blended * 100).toFixed(2)}%. It is not the simple average of the two rates, because the channels differ in volume.`],
-        ["ba.unit", 2, "What is revenue per visit for Social?", N(cv[1] * aov, [cv[0] * aov, aov, p[1] * aov / s[1], cv[1] * aov * 10], (x) => "$" + x.toFixed(2)), `${p[1].toLocaleString()} purchases × $${aov} = ${usd(p[1] * aov)}; divided by ${v[1].toLocaleString()} visits = $${(cv[1] * aov).toFixed(2)}.`],
-        ["ba.cases", 3, "Next month the blended conversion rate falls, but each channel's own rate is unchanged. What happened?", ["The traffic mix shifted toward the lower-converting channel", "Checkout broke for everyone", "Order value fell", "The data must be wrong"], "A blended ratio moves with composition. Always check segment rates before concluding behaviour changed."],
+        ["ba.kpi", 2, "What is the blended visit → purchase conversion across both channels?", N(blended, [(cv[0] + cv[1]) / 2, cv[0], cv[1], sum(s) / sum(v)], (x) => (x * 100).toFixed(2) + "%"), `Total purchases / total visits = ${sum(p).toLocaleString("en-US")} / ${sum(v).toLocaleString("en-US")} = ${(blended * 100).toFixed(2)}%. It is not the simple average of the two rates, because the channels differ in volume.`],
+        ["ba.unit", 2, "What is revenue per visit for Social?", N(cv[1] * aov, [cv[0] * aov, aov, p[1] * aov / s[1], cv[1] * aov * 10], (x) => "$" + x.toFixed(2)), `${p[1].toLocaleString("en-US")} purchases × $${aov} = ${usd(p[1] * aov)}; divided by ${v[1].toLocaleString("en-US")} visits = $${(cv[1] * aov).toFixed(2)}.`],
+        ["ba.cases", 3, "Next month the blended conversion rate falls, but each channel's own rate is unchanged. What happened?", ["The traffic mix shifted toward the lower-converting channel", "Checkout broke for everyone", "Order value fell", "The data must be wrong"], "A blended ratio moves with composition. Always check segment rates before concluding behavior changed."],
       ] };
   });
 
@@ -214,8 +214,8 @@ GROUP BY c.name;`),
     parts: [
       ["ba.viz", 1, "What makes this chart misleading?", ["The value axis starts at 77.5, so small differences look enormous", "It uses bars", "It has four categories", "It has a title"], "Bar length is read as magnitude. Truncating the axis makes Q4's bar look many times taller than Q1's."],
       ["ba.viz", 2, "By how much did the score actually rise from Q1 to Q4?", ["About 2.8%", "About 28%", "About 80%", "It more than tripled"], "(80.2 − 78) / 78 = 2.8%. The bars suggest a multiple, not a few percent."],
-      ["ba.viz", 2, "What is the simplest honest fix?", ["Start the axis at zero, or use a line/dot chart with the scale clearly labelled", "Use a 3-D bar chart", "Remove the axis labels", "Switch to a pie chart"], "Bars must start at zero. If small changes matter, a line or dot plot can use a narrower range without implying magnitude through length."],
-      ["ds.corr", 3, "Even drawn honestly, does the chart show that the redesign caused the increase?", ["No: the score was already rising, and there is no control group", "Yes: the rise follows the redesign", "Yes: the colours prove it", "Yes: four quarters are enough"], "A before/after comparison cannot separate the redesign from the existing trend, seasonality or other changes.", ["ba.viz"]],
+      ["ba.viz", 2, "What is the simplest honest fix?", ["Start the axis at zero, or use a line/dot chart with the scale clearly labeled", "Use a 3-D bar chart", "Remove the axis labels", "Switch to a pie chart"], "Bars must start at zero. If small changes matter, a line or dot plot can use a narrower range without implying magnitude through length."],
+      ["ds.corr", 3, "Even drawn honestly, does the chart show that the redesign caused the increase?", ["No: the score was already rising, and there is no control group", "Yes: the rise follows the redesign", "Yes: the colors prove it", "Yes: four quarters are enough"], "A before/after comparison cannot separate the redesign from the existing trend, seasonality or other changes.", ["ba.viz"]],
       ["ba.viz", 2, "Which title would be more accurate?", ["“Satisfaction up 2 points over the year (78 → 80)”", "“Satisfaction soars”", "“Redesign triples satisfaction”", "“Chart 4”"], "State the finding with its real size. Let the reader judge whether it is impressive."],
     ],
   });
@@ -249,7 +249,7 @@ dim_store           store_key, name, region`),
       ["ba.joins", 2, "Which join is needed to report revenue by product category?", ["fact_sales to dim_product on product_key", "fact_sales to dim_date on date_key", "dim_product to dim_customer", "No join; category is in the fact table"], "Category is a descriptive attribute stored in the product dimension.", ["ba.modeling"]],
       ["ba.modeling", 2, "Which columns are measures rather than keys or attributes?", ["quantity, unit_price, discount_amount", "order_id, date_key", "category, brand", "valid_from, valid_to"], "Measures are the numeric facts you aggregate. Keys link to dimensions; attributes describe."],
       ["ba.modeling", 3, "What do <code>valid_from</code>, <code>valid_to</code> and <code>is_current</code> on dim_customer tell you?", ["It is a type 2 slowly changing dimension that keeps history of attribute changes", "Customers expire after a fixed period", "It is a fact table", "The table is partitioned by date"], "When a customer moves city, a new row is added with new validity dates, so old sales still report under the old city."],
-      ["ba.modeling", 3, "Why is a pre-joined, denormalised version of this model common in warehouses?", ["Analytical queries scan and aggregate; fewer joins and columnar storage make that fast", "It reduces storage", "It guarantees data integrity", "Warehouses cannot perform joins"], "Read speed is the priority in OLAP. Redundancy is cheap and updates are rare."],
+      ["ba.modeling", 3, "Why is a pre-joined, denormalized version of this model common in warehouses?", ["Analytical queries scan and aggregate; fewer joins and columnar storage make that fast", "It reduces storage", "It guarantees data integrity", "Warehouses cannot perform joins"], "Read speed is the priority in OLAP. Redundancy is cheap and updates are rare."],
     ],
   });
 

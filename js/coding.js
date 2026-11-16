@@ -108,7 +108,7 @@
     sol: "function gradientStep(w, b, xs, ys, lr) {\n  let dw = 0, db = 0; const n = xs.length;\n  for (let i = 0; i < n; i++) {\n    const err = w * xs[i] + b - ys[i];\n    dw += 2 * err * xs[i]; db += 2 * err;\n  }\n  return [w - lr * dw / n, b - lr * db / n];\n}" });
 
   P("kmeans-assign", "k-means Assignment Step", 2, "ml.kmeans", {
-    desc: "Given <code>points</code> and <code>centroids</code> (each a list of [x, y] pairs), return a list with the index of the nearest centroid for each point, using Euclidean distance. Break ties in favour of the lower index.<br><br><b>Example:</b> points = [[0,0],[10,10],[1,1]], centroids = [[0,0],[9,9]] → [0, 1, 0]",
+    desc: "Given <code>points</code> and <code>centroids</code> (each a list of [x, y] pairs), return a list with the index of the nearest centroid for each point, using Euclidean distance. Break ties in favor of the lower index.<br><br><b>Example:</b> points = [[0,0],[10,10],[1,1]], centroids = [[0,0],[9,9]] → [0, 1, 0]",
     js: ["assignClusters", "function assignClusters(points, centroids) {\n  // your code here\n}\n"], py: ["assign_clusters", "def assign_clusters(points, centroids):\n    # your code here\n    pass\n"],
     tests: [[[[[0, 0], [10, 10], [1, 1]], [[0, 0], [9, 9]]], [0, 1, 0]], [[[[5, 5]], [[0, 0], [10, 10]]], [0]], [[[[1, 2], [8, 8], [9, 1], [2, 1]], [[0, 0], [10, 10], [10, 0]]], [0, 1, 2, 0]], [[[], [[0, 0]]], []], [[[[3, 4], [-3, -4]], [[0, 0]]], [0, 0]]],
     hint: "You can compare squared distances; the square root does not change which one is smallest.",
@@ -116,7 +116,7 @@
     sol: "function assignClusters(points, centroids) {\n  return points.map(([x, y]) => {\n    let best = 0, bd = Infinity;\n    centroids.forEach(([cx, cy], j) => { const d = (x - cx) ** 2 + (y - cy) ** 2; if (d < bd) { bd = d; best = j; } });\n    return best;\n  });\n}" });
 
   P("softmax", "Softmax with Temperature", 1, "ai.llm", {
-    desc: "Implement <code>softmax(logits, temperature)</code>: divide each logit by the temperature, exponentiate, and normalise so the outputs sum to 1. Your implementation should not overflow for large logits such as 1000.<br><br><b>Example:</b> logits = [1, 2, 3], temperature = 1 → [0.0900, 0.2447, 0.6652]",
+    desc: "Implement <code>softmax(logits, temperature)</code>: divide each logit by the temperature, exponentiate, and normalize so the outputs sum to 1. Your implementation should not overflow for large logits such as 1000.<br><br><b>Example:</b> logits = [1, 2, 3], temperature = 1 → [0.0900, 0.2447, 0.6652]",
     js: ["softmax", "function softmax(logits, temperature) {\n  // your code here\n}\n"], py: ["softmax", "def softmax(logits, temperature):\n    # your code here\n    pass\n"], cmp: "approx",
     tests: [[[[1, 2, 3], 1], [0.09003057317038046, 0.24472847105479764, 0.6652409557748219]], [[[0, 0], 1], [0.5, 0.5]], [[[2, 0], 2], [0.7310585786300049, 0.2689414213699951]], [[[5], 0.7], [1]], [[[1000, 1000, 1000], 1], [1 / 3, 1 / 3, 1 / 3]], [[[1, 2, 3], 0.5], [0.015876239976466765, 0.11731042782619838, 0.8668133321973349]]],
     hint: "e^1000 overflows. Subtracting the same constant from every logit does not change the result: subtract the maximum first.",
@@ -146,6 +146,38 @@
     hint: "What are the distinct scores in descending order? A score's dense rank is its position in that list.",
     approach: "Collect the distinct scores, sort them descending, and map each score to its 1-based position. O(n log n).",
     sol: "function denseRank(scores) {\n  const uniq = [...new Set(scores)].sort((a, b) => b - a), rank = new Map(uniq.map((s, i) => [s, i + 1]));\n  return scores.map((s) => rank.get(s));\n}" });
+
+  P("detect-loop", "Detect an Agent Loop", 1, "ag.loop", {
+    desc: "An agent harness logs each tool call as a string such as <code>search(q=\"Q3 revenue\")</code>. Return the index of the call at which the same call has appeared <code>k</code> times <b>in a row</b>, so the harness can interrupt the agent. If that never happens, return <code>-1</code>.<br><br><b>Example:</b> calls = [\"a\", \"b\", \"b\", \"b\", \"c\"], k = 3 → 3",
+    js: ["detectLoop", "function detectLoop(calls, k) {\n  // your code here\n}\n"], py: ["detect_loop", "def detect_loop(calls, k):\n    # your code here\n    pass\n"],
+    tests: [[[["a", "b", "b", "b", "c"], 3], 3], [[["a", "b", "a", "b"], 2], -1], [[["x", "x"], 2], 1], [[[], 2], -1], [[["s", "s", "t", "s", "s", "s", "s"], 4], 6], [[["only"], 1], 0]],
+    hint: "Keep a counter of how many times the current call has repeated. Reset it when the call changes.",
+    approach: "Walk the list once, tracking the length of the current run of identical calls. Return the index where the run length reaches k. O(n) time, O(1) space.",
+    sol: "function detectLoop(calls, k) {\n  let run = 0;\n  for (let i = 0; i < calls.length; i++) {\n    run = i > 0 && calls[i] === calls[i - 1] ? run + 1 : 1;\n    if (run >= k) return i;\n  }\n  return -1;\n}" });
+
+  P("backoff-schedule", "Exponential Backoff Schedule", 1, "ag.automation", {
+    desc: "Return the list of wait times (in seconds) before each of <code>retries</code> retries, using exponential backoff: the i-th wait (starting at 0) is <code>base · factor<sup>i</sup></code>, but never more than <code>cap</code>.<br><br><b>Example:</b> base = 1, factor = 2, cap = 10, retries = 5 → [1, 2, 4, 8, 10]",
+    js: ["backoffSchedule", "function backoffSchedule(base, factor, cap, retries) {\n  // your code here\n}\n"], py: ["backoff_schedule", "def backoff_schedule(base, factor, cap, retries):\n    # your code here\n    pass\n"], cmp: "approx",
+    tests: [[[1, 2, 10, 5], [1, 2, 4, 8, 10]], [[0.5, 2, 30, 4], [0.5, 1, 2, 4]], [[2, 3, 100, 4], [2, 6, 18, 54]], [[1, 2, 5, 0], []], [[5, 2, 3, 3], [3, 3, 3]], [[1, 1.5, 100, 3], [1, 1.5, 2.25]]],
+    hint: "Compute each delay from the formula and clamp it with min(). In production you'd also add random jitter.",
+    approach: "For i from 0 to retries − 1, append min(cap, base × factor^i). O(retries).",
+    sol: "function backoffSchedule(base, factor, cap, retries) {\n  const out = [];\n  for (let i = 0; i < retries; i++) out.push(Math.min(cap, base * factor ** i));\n  return out;\n}" });
+
+  P("validate-tool-call", "Validate a Tool Call", 2, "ag.tools", {
+    desc: "Before executing a tool call, a harness checks the model's arguments against a simple schema: <code>{ required: [names], props: { name: type } }</code>, where type is <code>\"string\"</code>, <code>\"number\"</code>, <code>\"boolean\"</code> or <code>\"array\"</code>. Return a list of error strings:<br>1. <code>\"missing: name\"</code> for each required name that is absent, in the order of <code>required</code>;<br>2. then, for each argument key in alphabetical order, <code>\"unknown: key\"</code> if it is not in <code>props</code>, or <code>\"type: key\"</code> if its value has the wrong type.<br>Return <code>[]</code> if the call is valid. Booleans are not numbers.<br><br><b>Example:</b> schema = {required: [\"city\", \"days\"], props: {city: \"string\", days: \"number\"}}, args = {city: \"Turku\", units: \"C\"} → [\"missing: days\", \"unknown: units\"]",
+    js: ["validateCall", "function validateCall(schema, args) {\n  // your code here\n}\n"], py: ["validate_call", "def validate_call(schema, args):\n    # your code here\n    pass\n"],
+    tests: [
+      [[{ required: ["city", "days"], props: { city: "string", days: "number" } }, { city: "Turku", units: "C" }], ["missing: days", "unknown: units"]],
+      [[{ required: ["q"], props: { q: "string", limit: "number" } }, { q: "agents", limit: 5 }], []],
+      [[{ required: [], props: { limit: "number" } }, { limit: "5" }], ["type: limit"]],
+      [[{ required: ["ids"], props: { ids: "array", dry_run: "boolean" } }, { ids: [1, 2], dry_run: "yes" }], ["type: dry_run"]],
+      [[{ required: ["n"], props: { n: "number" } }, { n: true }], ["type: n"]],
+      [[{ required: ["a", "b"], props: { a: "string", b: "string" } }, { z: 1, c: 2 }], ["missing: a", "missing: b", "unknown: c", "unknown: z"]],
+      [[{ required: [], props: { tags: "array", name: "string" } }, { tags: "x", name: ["y"] }], ["type: name", "type: tags"]],
+    ],
+    hint: "Write a helper that returns the type name of a value. In Python, check bool before int, because isinstance(True, int) is True. In JavaScript, use Array.isArray for arrays.",
+    approach: "First loop over schema.required and report missing names. Then sort the argument keys; for each, report unknown keys, otherwise compare the value's type with the schema's. O(r + a log a).",
+    sol: "function validateCall(schema, args) {\n  const kind = (v) => Array.isArray(v) ? \"array\" : typeof v;\n  const errs = schema.required.filter((r) => !(r in args)).map((r) => \"missing: \" + r);\n  for (const k of Object.keys(args).sort()) {\n    if (!(k in schema.props)) errs.push(\"unknown: \" + k);\n    else if (kind(args[k]) !== schema.props[k]) errs.push(\"type: \" + k);\n  }\n  return errs;\n}" });
 
   /* ---------- comparison ---------- */
   const approx = (a, b) => typeof a === "number" && typeof b === "number" ? Math.abs(a - b) <= 1e-6 * Math.max(1, Math.abs(b)) : Array.isArray(a) && Array.isArray(b) ? a.length === b.length && a.every((v, i) => approx(v, b[i])) : a === b;

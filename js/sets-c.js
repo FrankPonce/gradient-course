@@ -33,7 +33,7 @@
       ["swe.recursion", 2, "What does <code>paths(1, 3)</code> return?", ["4", "3", "6", "1"], "paths(1,3) = paths(0,3) + paths(1,2) = 1 + 3 = 4. Equivalently, choose which of 4 moves is the single 'down': C(4,1)."],
       ["swe.dp", 2, "What does <code>paths(2, 2)</code> return?", ["6", "4", "8", "2"], "paths(2,2) = paths(1,2) + paths(2,1) = 3 + 3 = 6. It is C(4,2)."],
       ["swe.bigo", 3, "Without caching, how does the running time grow?", ["Exponentially, because the same cells are recomputed many times", "Linearly in r + c", "As r × c", "Logarithmically"], "The call tree branches in two at every step down to depth r + c, and subproblems overlap heavily."],
-      ["swe.dp", 2, "With memoisation (or a table), the time complexity becomes:", ["O(r × c)", "O(2^(r+c))", "O(r + c)", "O(1)"], "There are only (r+1)(c+1) distinct subproblems, each computed once in O(1)."],
+      ["swe.dp", 2, "With memoization (or a table), the time complexity becomes:", ["O(r × c)", "O(2^(r+c))", "O(r + c)", "O(1)"], "There are only (r+1)(c+1) distinct subproblems, each computed once in O(1)."],
       ["swe.dp", 3, "In a bottom-up table, what is the rule for filling a cell not on the top row or left column?", ["dp[r][c] = dp[r−1][c] + dp[r][c−1]", "dp[r][c] = dp[r−1][c−1] + 1", "dp[r][c] = max(dp[r−1][c], dp[r][c−1])", "dp[r][c] = dp[r−1][c] × dp[r][c−1]"], "Every route arrives either from above or from the left, and those two sets do not overlap."],
     ],
   });
@@ -64,9 +64,9 @@
     parts: [
       ["swe.graphs", 2, "What is the cost of the cheapest path from A to B?", ["3", "4", "1", "6"], "A → C → B costs 1 + 2 = 3, beating the direct edge of 4."],
       ["swe.graphs", 2, "What is the cost of the cheapest path from A to D?", ["8", "9", "13", "5"], "A → C → B → D = 1 + 2 + 5 = 8. A → C → D costs 9 and A → B → D costs 9."],
-      ["swe.graphs", 3, "In what order does Dijkstra's algorithm, started at A, finalise the nodes?", ["A, C, B, D, E", "A, B, C, D, E", "A, C, D, B, E", "A, B, D, C, E"], "It always finalises the closest unfinalised node: A (0), C (1), B (3), D (8), E (11)."],
+      ["swe.graphs", 3, "In what order does Dijkstra's algorithm, started at A, finalize the nodes?", ["A, C, B, D, E", "A, B, C, D, E", "A, C, D, B, E", "A, B, D, C, E"], "It always finalizes the closest unfinalized node: A (0), C (1), B (3), D (8), E (11)."],
       ["swe.graphs", 2, "Ignoring weights, how many edges are on a shortest A-to-D path found by BFS?", ["2", "3", "1", "4"], "A–B–D or A–C–D, two edges. Note the fewest-edges path is not the cheapest path."],
-      ["swe.graphs", 3, "Why can BFS not be used to find the cheapest path here?", ["BFS minimises the number of edges and ignores their weights", "BFS only works on trees", "BFS cannot handle cycles", "BFS needs a directed graph"], "BFS is correct for unweighted graphs, where every edge costs the same."],
+      ["swe.graphs", 3, "Why can BFS not be used to find the cheapest path here?", ["BFS minimizes the number of edges and ignores their weights", "BFS only works on trees", "BFS cannot handle cycles", "BFS needs a directed graph"], "BFS is correct for unweighted graphs, where every edge costs the same."],
       ["swe.trees", 2, "Which data structure makes Dijkstra efficient at picking the next closest node?", ["A min-heap (priority queue)", "A stack", "A hash set", "A linked list"], "The heap returns the smallest tentative distance in O(log n).", ["swe.graphs"]],
     ],
   });
@@ -83,7 +83,7 @@ def list_orders(user_id: str):
     return orders`),
     parts: [
       ["swe.practices", 2, "What is the most serious problem?", ["SQL injection: user input is concatenated into the query", "The function name is too long", "It returns JSON", "It uses a for loop"], "A user_id of <code>1 OR 1=1</code> returns every user's orders, and worse is possible."],
-      ["swe.practices", 2, "How should that be fixed?", ["Use parameterised queries so the driver passes values separately from SQL", "Remove spaces from the input", "Wrap the input in quotes", "Convert the input to upper case"], "Parameters are never interpreted as SQL. Hand-rolled escaping is fragile.", ["swe.db"]],
+      ["swe.practices", 2, "How should that be fixed?", ["Use parameterized queries so the driver passes values separately from SQL", "Remove spaces from the input", "Wrap the input in quotes", "Convert the input to upper case"], "Parameters are never interpreted as SQL. Hand-rolled escaping is fragile.", ["swe.db"]],
       ["swe.db", 2, "A user has 200 orders. How many queries does one request run?", ["201", "200", "2", "1"], "One query for the orders, then one per order for its items: the N+1 problem."],
       ["swe.db", 2, "How do you fix that?", ["Fetch all items in one query with <code>WHERE order_id IN (...)</code> or a join", "Add a sleep between queries", "Cache each query forever", "Use a faster loop"], "Two queries (or one join) replace 201 round trips."],
       ["swe.db", 3, "The first query is slow even for users with few orders. Why, and what fixes it?", ["It scans all 40M rows; add an index on orders(user_id)", "The table is too wide; add more columns", "SELECT * is always slow; nothing can fix it", "The primary key is wrong; drop it"], "With no index on user_id the database must check every row. An index makes the lookup logarithmic."],
@@ -94,12 +94,12 @@ def list_orders(user_id: str):
 
   S("swe.sysdesign", "Back-of-envelope capacity planning", (r) => {
     const dau = r.pick([1, 5, 10]), per = r.pick([20, 50]), peak = r.pick([3, 5]), cap = r.pick([500, 1000]), avg = (dau * 1e6 * per) / 86400, pk = avg * peak, servers = Math.ceil(pk / cap), gb = (dau * 1e6 * per * 0.1 * 2) / 1e6;
-    return { stim: T(["Assumption", "Value"], [["Daily active users", dau + " million"], ["Requests per user per day", per], ["Peak-to-average traffic ratio", peak + "×"], ["Capacity of one app server", cap.toLocaleString() + " requests/s"], ["Share of requests that write data", "10%"], ["Size of each write", "2 KB"]], "Design inputs") + `<p>Use 86,400 seconds per day.</p>`,
+    return { stim: T(["Assumption", "Value"], [["Daily active users", dau + " million"], ["Requests per user per day", per], ["Peak-to-average traffic ratio", peak + "×"], ["Capacity of one app server", cap.toLocaleString("en-US") + " requests/s"], ["Share of requests that write data", "10%"], ["Size of each write", "2 KB"]], "Design inputs") + `<p>Use 86,400 seconds per day.</p>`,
       parts: [
-        ["swe.sysdesign", 2, "What is the average request rate?", N(avg, [(dau * 1e6 * per) / 3600, (dau * 1e6) / 86400, avg * 10, avg / 10], (x) => "≈ " + Math.round(x).toLocaleString() + " requests/s"), `${dau}M × ${per} = ${(dau * per).toLocaleString()}M requests/day ÷ 86,400 ≈ ${Math.round(avg).toLocaleString()} per second.`],
-        ["swe.sysdesign", 2, "What request rate should the system be sized for?", N(pk, [avg, avg * peak * peak, avg + peak, pk / 2], (x) => "≈ " + Math.round(x).toLocaleString() + " requests/s"), `Size for the peak: ${Math.round(avg).toLocaleString()} × ${peak} ≈ ${Math.round(pk).toLocaleString()} per second.`],
-        ["swe.sysdesign", 2, "How many app servers are needed to carry the peak (before any redundancy)?", N(servers, [Math.ceil(avg / cap), servers * 2, servers + 3, Math.max(1, servers - 1)].filter((x) => x !== servers)), `${Math.round(pk).toLocaleString()} ÷ ${cap.toLocaleString()} = ${(pk / cap).toFixed(1)}, rounded up to ${servers}.`],
-        ["swe.sysdesign", 3, "Roughly how much new data is written per day?", N(gb, [gb * 10, gb / 10, gb * 1000, gb / 2], (x) => (x >= 1 ? +x.toFixed(1) : +x.toFixed(2)) + " GB"), `${(dau * per).toLocaleString()}M requests × 10% × 2 KB = ${(dau * per * 0.2).toLocaleString()}M KB = ${+gb.toFixed(1)} GB per day.`],
+        ["swe.sysdesign", 2, "What is the average request rate?", N(avg, [(dau * 1e6 * per) / 3600, (dau * 1e6) / 86400, avg * 10, avg / 10], (x) => "≈ " + Math.round(x).toLocaleString("en-US") + " requests/s"), `${dau}M × ${per} = ${(dau * per).toLocaleString("en-US")}M requests/day ÷ 86,400 ≈ ${Math.round(avg).toLocaleString("en-US")} per second.`],
+        ["swe.sysdesign", 2, "What request rate should the system be sized for?", N(pk, [avg, avg * peak * peak, avg + peak, pk / 2], (x) => "≈ " + Math.round(x).toLocaleString("en-US") + " requests/s"), `Size for the peak: ${Math.round(avg).toLocaleString("en-US")} × ${peak} ≈ ${Math.round(pk).toLocaleString("en-US")} per second.`],
+        ["swe.sysdesign", 2, "How many app servers are needed to carry the peak (before any redundancy)?", N(servers, [Math.ceil(avg / cap), servers * 2, servers + 3, Math.max(1, servers - 1)].filter((x) => x !== servers)), `${Math.round(pk).toLocaleString("en-US")} ÷ ${cap.toLocaleString("en-US")} = ${(pk / cap).toFixed(1)}, rounded up to ${servers}.`],
+        ["swe.sysdesign", 3, "Roughly how much new data is written per day?", N(gb, [gb * 10, gb / 10, gb * 1000, gb / 2], (x) => (x >= 1 ? +x.toFixed(1) : +x.toFixed(2)) + " GB"), `${(dau * per).toLocaleString("en-US")}M requests × 10% × 2 KB = ${(dau * per * 0.2).toLocaleString("en-US")}M KB = ${+gb.toFixed(1)} GB per day.`],
         ["swe.sysdesign", 2, "Why would you provision more servers than the previous answer?", ["To survive instance failures and deployments without dropping below peak capacity", "Servers run faster in larger groups", "Load balancers require an even number", "To increase latency"], "With exactly enough servers, losing one during peak means overload. N+1 or N+2 redundancy is standard."],
         ["swe.sysdesign", 3, "90% of requests are reads of data that rarely changes. What reduces load on the database most?", ["A cache in front of the database, plus read replicas", "Sharding by write key", "A message queue for reads", "More app servers"], "Caching and replicas scale reads. Sharding and queues address write volume."],
       ] };
@@ -112,7 +112,7 @@ def list_orders(user_id: str):
       ["swe.sorting", 2, "Why did pass 3 change nothing?", ["The next element, 6, was already larger than everything in the sorted prefix", "The algorithm skipped a step", "6 is the maximum, so it was removed", "A swap failed"], "Insertion sort does a single comparison when the new element is already in position."],
       ["swe.sorting", 2, "What would selection sort produce after its FIRST pass on the same input?", ["[1, 2, 4, 6, 5, 3]", "[2, 5, 4, 6, 1, 3]", "[2, 4, 5, 1, 3, 6]", "[1, 5, 2, 4, 6, 3]"], "Selection sort finds the minimum (1) and swaps it with the first element (5)."],
       ["swe.sorting", 2, "What would bubble sort produce after its FIRST pass on the same input?", ["[2, 4, 5, 1, 3, 6]", "[1, 2, 4, 6, 5, 3]", "[2, 5, 4, 6, 1, 3]", "[5, 2, 4, 1, 3, 6]"], "Adjacent swaps carry the largest value, 6, to the end: 5↔2, 5↔4, (5,6 stay), 6↔1, 6↔3."],
-      ["swe.bigo", 2, "How many comparisons does insertion sort make on an already sorted array of n elements?", ["n − 1", "n²", "n log n", "n(n − 1)/2"], "Each new element is compared once with its left neighbour and stays put, giving O(n)."],
+      ["swe.bigo", 2, "How many comparisons does insertion sort make on an already sorted array of n elements?", ["n − 1", "n²", "n log n", "n(n − 1)/2"], "Each new element is compared once with its left neighbor and stays put, giving O(n)."],
       ["swe.sorting", 2, "Is insertion sort stable?", ["Yes: an element only moves past strictly larger ones", "No", "Only for integers", "Only when the input is sorted"], "Equal elements never overtake each other, so their original order is preserved."],
     ],
   });
@@ -125,7 +125,7 @@ def list_orders(user_id: str):
       ["swe.dp", 2, "What is dp[7]?", ["2", "3", "4", "1"], "1 + min(dp[6], dp[4], dp[3]) = 1 + min(2, 1, 1) = 2, using 4 + 3."],
       ["swe.dp", 3, "How many coins does the greedy strategy (largest coin first) use for 6?", ["3 (4 + 1 + 1), which is not optimal", "2 (3 + 3)", "1", "6"], "Greedy grabs the 4 and is then forced into two 1s. This coin system is one where greedy fails."],
       ["swe.bigo", 2, "What is the time complexity for amount A with k coin types?", ["O(A × k)", "O(k^A)", "O(A + k)", "O(A²)"], "Each of the A table entries looks at k coins."],
-      ["swe.dp", 3, "The table gives the number of coins. How do you recover WHICH coins were used?", ["Store, for each amount, the coin that achieved the minimum, then walk back from A", "It is impossible", "Run greedy afterwards", "Sort the dp array"], "Keeping a parent pointer per state is the standard way to reconstruct a DP solution."],
+      ["swe.dp", 3, "The table gives the number of coins. How do you recover WHICH coins were used?", ["Store, for each amount, the coin that achieved the minimum, then walk back from A", "It is impossible", "Run greedy afterward", "Sort the dp array"], "Keeping a parent pointer per state is the standard way to reconstruct a DP solution."],
     ],
   });
 
@@ -207,7 +207,7 @@ FAILED tests/test_order.py::test_total_with_discount_and_tax
   assert order.total() == 108.90
   AssertionError: 114.95 != 108.90`),
     parts: [
-      ["swe.practices", 2, "Both branches passed CI on their own. Why can the merge still fail?", ["The changes interact: one branch's tests assumed the other's behaviour had not changed", "Merge commits always fail", "CI was misconfigured", "Git lost a commit"], "A textually clean merge is not a semantically clean one. The tax-rate change and the discount logic meet only on main."],
+      ["swe.practices", 2, "Both branches passed CI on their own. Why can the merge still fail?", ["The changes interact: one branch's tests assumed the other's behavior had not changed", "Merge commits always fail", "CI was misconfigured", "Git lost a commit"], "A textually clean merge is not a semantically clean one. The tax-rate change and the discount logic meet only on main."],
       ["swe.practices", 2, "Which command finds the first bad commit by binary search?", ["<code>git bisect</code>", "<code>git blame</code>", "<code>git stash</code>", "<code>git cherry-pick</code>"], "bisect checks out midpoints between a known good and a known bad commit until it isolates the culprit."],
       ["swe.practices", 3, "The fastest safe way to make main green while the cause is investigated is:", ["Revert the merge commit with a new commit", "Force-push main back to 2e6d7f8", "Delete the failing test", "Rebase main onto the feature branch"], "A revert preserves history and is safe on a shared branch. Force-pushing rewrites history that others have already pulled."],
       ["swe.practices", 2, "What kind of test caught this?", ["A test spanning discount and tax logic together, closer to an integration test", "A load test", "A snapshot of the UI", "A linter"], "Unit tests of each piece passed. Only a test that exercises both together sees the interaction."],

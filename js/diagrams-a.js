@@ -118,7 +118,7 @@
           S("line", { x1: x(0), x2: x(10), y1: y(a), y2: y(a + 10 * b), stroke: K.or, "stroke-width": 3.5, "clip-path": "none" }, svg);
           S("circle", { cx: x(mx), cy: y(my), r: 5, fill: "none", stroke: K.or, "stroke-width": 2 }, svg); }
         P.forEach((p, i) => S("circle", { cx: x(p[0]), cy: y(p[1]), r: 8, fill: K.navy, stroke: "var(--paper)", "stroke-width": 2, "data-i": i, style: "cursor:grab" }, svg));
-        chips(read, [["points", n], ["slope", b.toFixed(3)], ["intercept", a.toFixed(3)], ["R²", r2.toFixed(3), K.or], ["MSE", (sse / n).toFixed(3), K.pink], ["correlation r", (Math.sign(b) * Math.sqrt(Math.max(0, r2))).toFixed(3)]], "Pink segments are residuals. The line always passes through the ring at (mean x, mean y).");
+        chips(read, [["points", n], ["slope", b.toFixed(3)], ["intercept", a.toFixed(3)], ["R²", r2.toFixed(3), K.or], ["MSE", (sse / n).toFixed(3), K.pink], ["correlation r", (Math.sign(b) * Math.sqrt(Math.max(0, r2))).toFixed(3)]], "Violet segments are residuals. The line always passes through the ring at (mean x, mean y).");
       };
       svg.style.touchAction = "none";
       svg.addEventListener("pointerdown", (e) => { const i = e.target.dataset && e.target.dataset.i; if (i !== undefined) drag = +i; else { const [px, py] = pt(svg, e); P.push([clamp(x.inv(px), 0, 10), clamp(y.inv(py), 0, 10)]); drag = P.length - 1; draw(); } svg.setPointerCapture(e.pointerId); });
@@ -149,7 +149,7 @@
         S("circle", { cx: rx(fpr(t)), cy: ry(tpr(t)), r: 7, fill: K.or, stroke: "var(--paper)", "stroke-width": 2 }, svg);
         const auc = Phi(sep / (sd * Math.SQRT2)), N = 1000, pos = N * prev, neg = N - pos, TP = pos * tpr(t), FN = pos - TP, FP = neg * fpr(t), TN = neg - FP, pr = TP + FP ? TP / (TP + FP) : 1, rc = tpr(t);
         T(svg, 600, 60, "AUC " + auc.toFixed(3), { "text-anchor": "middle", "font-size": 15, "font-weight": 800, fill: K.navy });
-        chips(read, [["TP", Math.round(TP), K.green], ["FP", Math.round(FP), K.pink], ["FN", Math.round(FN), K.navy], ["TN", Math.round(TN)], ["precision", (pr * 100).toFixed(1) + "%", K.or], ["recall", (rc * 100).toFixed(1) + "%", K.or], ["F1", ((2 * pr * rc) / (pr + rc || 1)).toFixed(3)], ["accuracy", (((TP + TN) / N) * 100).toFixed(1) + "%"]], "Counts are per 1,000 cases. Green = caught positives, pink = false alarms, navy = missed positives.");
+        chips(read, [["TP", Math.round(TP), K.green], ["FP", Math.round(FP), K.pink], ["FN", Math.round(FN), K.navy], ["TN", Math.round(TN)], ["precision", (pr * 100).toFixed(1) + "%", K.or], ["recall", (rc * 100).toFixed(1) + "%", K.or], ["F1", ((2 * pr * rc) / (pr + rc || 1)).toFixed(3)], ["accuracy", (((TP + TN) / N) * 100).toFixed(1) + "%"]], "Counts are per 1,000 cases. Green = caught positives, violet = false alarms, blue = missed positives.");
       };
       slider(ctl, "Threshold", 0, 1, 0.01, t, (v) => { t = v; draw(); }, (v) => v.toFixed(2));
       slider(ctl, "Class separation", 0.05, 0.6, 0.01, sep, (v) => { sep = v; draw(); }, (v) => v.toFixed(2));
@@ -158,7 +158,7 @@
     } };
 
   /* ============ k-means ============ */
-  D.kmeans = { title: "k-means clustering", blurb: "Step through the assign and update phases. Click the canvas to add points and see how the clusters reorganise.", skills: ["ml.kmeans"],
+  D.kmeans = { title: "k-means clustering", blurb: "Step through the assign and update phases. Click the canvas to add points and see how the clusters reorganize.", skills: ["ml.kmeans"],
     tasks: ["Press “New centroids” several times with k = 3. Does it always find the same clusters?", "Set k = 5 on three blobs. What does k-means do with the extra centroids?", "Add a far-away outlier by clicking in a corner. What happens to the nearest centroid?"],
     mount(host) {
       const { ctl, svg, read } = frame(host); const cols = [K.or, K.navy, K.pink, K.green, K.blue]; let k = 3, seed = 3, P, C, A, phase, it, r;
@@ -171,7 +171,7 @@
         [...gC.children].forEach((e, i) => (e.style.transform = `translate(${C[i][0]}px,${C[i][1]}px) rotate(45deg)`));
         gL.innerHTML = ""; if (phase === "update") P.forEach((p, i) => S("line", { x1: p[0], y1: p[1], x2: C[A[i]][0], y2: C[A[i]][1], stroke: cols[A[i]], opacity: 0.25 }, gL));
         const inertia = A[0] < 0 ? null : P.reduce((s, p, i) => s + (p[0] - C[A[i]][0]) ** 2 + (p[1] - C[A[i]][1]) ** 2, 0);
-        chips(read, [["iteration", it], ["next phase", phase === "done" ? "converged" : phase, K.or], ["inertia", inertia === null ? "–" : Math.round(inertia).toLocaleString()], ["points", P.length]], phase === "assign" ? "Assign: each point takes the colour of its nearest centroid (diamond)." : phase === "update" ? "Update: each centroid moves to the mean of its points." : "Converged: no assignment changed. This is a local optimum for these starting centroids.");
+        chips(read, [["iteration", it], ["next phase", phase === "done" ? "converged" : phase, K.or], ["inertia", inertia === null ? "–" : Math.round(inertia).toLocaleString("en-US")], ["points", P.length]], phase === "assign" ? "Assign: each point takes the color of its nearest centroid (diamond)." : phase === "update" ? "Update: each centroid moves to the mean of its points." : "Converged: no assignment changed. This is a local optimum for these starting centroids.");
       };
       const step = () => {
         if (phase === "done") return false;
@@ -205,7 +205,7 @@
           if (i === sel) T(gE, (e.a[0] + e.b[0]) / 2, (e.a[1] + e.b[1]) / 2 - 8, "w = " + w.toFixed(1), { "text-anchor": "middle", "font-weight": 800, fill: K.ink, "font-size": 13 }); });
         const node = (p, v, l) => { S("circle", { cx: p[0], cy: p[1], r: 30, fill: "var(--paper)", stroke: K.ink, "stroke-width": 2 }, gN); S("circle", { cx: p[0], cy: p[1], r: 30, fill: fill(v) }, gN); T(gN, p[0], p[1] + 5, v.toFixed(2), { "text-anchor": "middle", "font-size": 14, "font-weight": 800, fill: K.ink }); T(gN, p[0], p[1] - 38, l, { "text-anchor": "middle", fill: K.mute, "font-weight": 600 }); };
         pi.forEach((p, i) => node(p, X[i], "input x" + (i + 1))); ph.forEach((p, j) => node(p, H[j], "hidden h" + (j + 1))); node(po, out, "output (sigmoid)");
-        chips(read, [["selected", edges[sel].n, K.or], ["h₁, h₂, h₃", H.map((h) => h.toFixed(2)).join(", ")], ["pre-activation z", z.toFixed(3)], ["output σ(z)", out.toFixed(3), K.or]], "Navy connections carry positive weights, pink negative; thickness shows magnitude. Node colour shows activation.");
+        chips(read, [["selected", edges[sel].n, K.or], ["h₁, h₂, h₃", H.map((h) => h.toFixed(2)).join(", ")], ["pre-activation z", z.toFixed(3)], ["output σ(z)", out.toFixed(3), K.or]], "Blue connections carry positive weights, violet negative; thickness shows magnitude. Node color shows activation.");
         if (pulse) { gPulse.innerHTML = ""; edges.forEach((e, i) => { const c = S("circle", { r: 4, fill: K.or, cx: e.a[0], cy: e.a[1], opacity: 0 }, gPulse); const delay = i < 6 ? 0 : 420; c.animate([{ transform: "translate(0,0)", opacity: 1 }, { transform: `translate(${e.b[0] - e.a[0]}px,${e.b[1] - e.a[1]}px)`, opacity: 1 }], { duration: 420, delay, easing: "ease-in-out" }); }); }
       };
       svg.addEventListener("click", (e) => { const i = e.target.dataset && e.target.dataset.e; if (i !== undefined) { sel = +i; wS.set(edges[sel].get()); draw(); } });
@@ -213,7 +213,7 @@
       slider(ctl, "x₂", -1, 1, 0.05, X[1], (v) => { X[1] = v; draw(true); }, (v) => v.toFixed(2));
       rand(); wS = slider(ctl, "Selected weight", -3, 3, 0.1, edges[0].get(), (v) => { edges[sel].set(v); draw(true); }, (v) => v.toFixed(1));
       select(ctl, "Hidden activation", [["relu", "ReLU"], ["tanh", "tanh"], ["sigmoid", "sigmoid"], ["linear", "none (linear)"]], (v) => { act = v; draw(true); });
-      button(ctl, "Randomise weights", () => { rand(); wS.set(edges[sel].get()); draw(true); });
+      button(ctl, "Randomize weights", () => { rand(); wS.set(edges[sel].get()); draw(true); });
       draw(true);
     } };
 
