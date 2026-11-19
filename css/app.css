@@ -314,7 +314,7 @@ button.opt:hover:not(:disabled){border-color:var(--mute);background:var(--card);
 .prg-body{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:28px;align-items:start}
 .sheet{border:1px solid var(--rule);border-radius:var(--r);background:var(--paper);overflow:hidden}
 .wk{display:grid;grid-template-columns:200px minmax(0,1fr);border-top:1px solid var(--rule)} .wk:first-child{border-top:0}
-.wk-l{position:relative;padding:16px 18px;background:var(--card);border-right:1px solid var(--rule)} .wk-n{font:700 26px/1 var(--mono,monospace);color:var(--ink2)} .wk-l h2{font:600 19px/1.15 var(--ui);margin:3px 0 4px;letter-spacing:-.01em} .wk-l p{margin:0;font-size:12.5px;color:var(--ink2);line-height:1.4} .wk-c{position:absolute;top:16px;right:16px;font-size:12px;color:var(--ink2)}
+.wk-l{position:relative;padding:16px 18px;background:var(--card);border-right:1px solid var(--rule)} .wk-n{font:700 26px/1 "JetBrains Mono",Consolas,monospace;color:var(--ink2)} .wk-l h2{font:600 19px/1.15 var(--ui);margin:3px 0 4px;letter-spacing:-.01em} .wk-l p{margin:0;font-size:12.5px;color:var(--ink2);line-height:1.4} .wk-c{position:absolute;top:16px;right:16px;font-size:12px;color:var(--ink2)}
 .wk-done .wk-n{color:var(--or)}
 .wk-s{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}
 .ses{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:3px;min-height:104px;padding:12px 14px 12px;border:0;border-left:1px solid var(--rule);border-bottom:1px solid var(--rule);background:transparent;color:var(--ink);text-align:left;cursor:pointer;font:inherit;transition:background .15s}
@@ -405,3 +405,5 @@ button.opt:hover:not(:disabled){border-color:var(--mute);background:var(--card);
 .av.compact .av-ctl{border:0;padding-top:4px;justify-content:center}
 body.focus #app{grid-template-columns:minmax(0,1fr)} body.focus #nav{display:none} body.focus #main{padding-top:26px} body.focus #pet{opacity:.85}
 pre,code,.ln-code,.chip-b,.ord-line,.slot,#ed,.av-code{font-variant-ligatures:none}
+
+.wk-skip{margin-top:10px;min-height:36px;padding:6px 12px;font-size:13px}

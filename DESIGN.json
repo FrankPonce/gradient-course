@@ -1,0 +1,37 @@
+{
+  "name": "GRADIENT",
+  "source": ["css/app.css", "js/path.js", "js/anim.js"],
+  "themes": {
+    "dark": { "bg": "#0C0B0B", "paper": "#151313", "card": "#1E1B1B", "rule": "#2D2828", "ink": "#F2ECE8", "ink2": "#B5ACA8", "mute": "#7C7370", "or": "#D02A34", "blood": "#A8191F", "bad": "#E25A72", "green": "#8FBA6A", "gold": "#E0A63C", "code": "#080707", "glow": "transparent" },
+    "light": { "bg": "#F3EEE6", "paper": "#FBF8F3", "card": "#EAE3D8", "rule": "#DAD1C3", "ink": "#161313", "ink2": "#4D4643", "mute": "#8A817B", "or": "#A8191F", "blood": "#A8191F", "bad": "#B12848", "green": "#4B7A28", "gold": "#7A5200", "code": "#141111", "glow": "transparent" }
+  },
+  "fonts": {
+    "display": "Grenze Gotisch, Pirata One, Georgia, serif",
+    "wordmark": "Pirata One, Grenze Gotisch, serif",
+    "ui": "Bricolage Grotesque, Inter, Segoe UI, system-ui, sans-serif",
+    "body": "Inter, Segoe UI, system-ui, sans-serif",
+    "mono": "JetBrains Mono, Cascadia Code, Consolas, monospace"
+  },
+  "shapes": {
+    "hex": "polygon(10px 0,calc(100% - 10px) 0,100% 50%,calc(100% - 10px) 100%,10px 100%,0 50%)",
+    "hexSmall": "polygon(6px 0,calc(100% - 6px) 0,100% 50%,calc(100% - 6px) 100%,6px 100%,0 50%)",
+    "radius": "14px"
+  },
+  "motion": { "ease": "cubic-bezier(.22,.9,.24,1)", "stamp": "stampIn .45-.6s cubic-bezier(.2,1.6,.4,1)", "reducedMotion": "css animation/transition none; JS final frame and instant scroll" },
+  "namedRules": ["Gold Rule: gold only for PRs and gold splits", "Verdict Rule: right is bone, wrong is blood red", "Single Red Rule", "No Glow"],
+  "components": {
+    "button-primary": { "bg": "blood", "hover": "or", "text": "#fff", "clip": "hex" },
+    "session-cell": { "states": ["locked", "now", "done", "gold", "just"], "stamp": "2px border, rotate(-5deg), uppercase 12px/800" },
+    "verdict-stamp": { "ok": "ink", "bad": "or", "border": "2.5px", "rotate": "-5deg" },
+    "log-stamp": { "default": "or", "gold": "gold", "bad": "bad", "border": "3px" },
+    "today-card": { "sticky": "top 20px", "width": "320px", "mobile": "above sheet" }
+  },
+  "notCanonized": [
+    "uppercase tracked small labels (.cap, .ng, .tname)",
+    "side/top stripes (.av-code span.on, .lcard::before)",
+    "hard-coded gold #C9933A in toast, loot, anim.js",
+    "undefined --mono fallback in .wk-n",
+    "legacy sheen, shimmer and gradient callouts"
+  ],
+  "knownGaps": ["no live session clock/ghost", "stamps are flat CSS, no ink texture", "stamped and gold states not captured visually"]
+}

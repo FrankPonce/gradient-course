@@ -18,7 +18,8 @@
   const shuffle = (a) => rngNow().shuffle(a);
   const pickOne = (a) => a[Math.floor(Math.random() * a.length)];
   const PRAISE = ["Clean rep.", "Correct.", "That's the one.", "Nailed it.", "Good lift.", "Right."];
-  const KIND = { learn: "Learn", drill: "Drill", problem: "Problem", pr: "PR attempt", test: "Test" };
+  const KIND = { learn: "Learn", drill: "Drill", problem: "Problem", pr: "PR attempt", test: "Test", skip: "Skip-ahead exam" };
+  const SKIP_PASS = 0.8;
   const KIND_EX = { mcq: "Multiple choice", fill: "Fill the blanks", ord: "Order the lines", rank: "Rank", match: "Match pairs", bins: "Sort into groups", bug: "Find the bug", num: "Work it out", learn: "Watch and read" };
   const fmtT = (s) => (s === undefined || s === null ? "–" : `${Math.floor(s / 60)}:${String(Math.round(s % 60)).padStart(2, "0")}`);
 
@@ -31,6 +32,9 @@
     });
     C[id] = Object.assign(def, { id, nodes });
   };
+  /* skip-ahead exam: a virtual node (never stored in c.nodes) that covers every week before unit t */
+  const skipN = (t) => Math.min(40, 14 + 6 * t);
+  const findNode = (c, id) => { const n = c.nodes.find((x) => x.id === id); if (n) return n; const m = /-skip-(\d+)$/.exec(id || ""), t = m ? +m[1] : 0; return t >= 1 && t < c.units.length && id === `${c.id}-skip-${t}` ? { id, title: `Skip-ahead exam: Week ${t + 1}`, kind: "skip", unit: t, n: skipN(t), skill: c.units[0].lessons[0] && c.units[0].lessons[0].skill } : null; };
   const ps = (cid) => { const p = (GR.state.path = GR.state.path || {}); return (p[cid] = p[cid] || { done: {} }); };
   const curIdx = (c) => { const d = ps(c.id).done, k = c.nodes.findIndex((n) => !d[n.id]); return k < 0 ? c.nodes.length : k; };
   const today = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`; };
@@ -41,12 +45,15 @@
   const resolve = (node, rng) => (typeof node.cards === "function" ? node.cards(rng) : (node.cards || []).slice());
   const cardsFor = (c, node) => {
     const rng = rngNow();
+    if (node.kind === "skip") { const pool = [];
+      c.units.slice(0, node.unit).forEach((u) => { u.lessons.forEach((l) => resolve(l, rng).filter((x) => x.k !== "learn").forEach((x) => pool.push(Object.assign({ skill: l.skill }, x)))); if (c.testPool) c.testPool(u, rng).forEach((x) => pool.push(x)); });
+      const hard = rng.shuffle(pool).sort((a, b) => (b.d || 2) - (a.d || 2)).slice(0, Math.ceil(skipN(node.unit) * 1.6)); return rng.shuffle(hard).slice(0, skipN(node.unit)); }
     if (node.kind !== "test") return resolve(node, rng);
     const ls = c.units[node.unit].lessons, pool = ls.flatMap((l) => resolve(l, rng).filter((x) => x.k !== "learn").map((x) => Object.assign({ skill: l.skill }, x)));
     const extra = c.testPool ? c.testPool(c.units[node.unit], rng) : [];
     return rng.shuffle(pool.concat(extra)).slice(0, 10);
   };
-  GR.pathCards = (cid, id) => { const c = C[cid], n = c && c.nodes.find((x) => x.id === id); return n ? cardsFor(c, n) : []; };
+  GR.pathCards = (cid, id) => { const c = C[cid], n = c && findNode(c, id); return n ? cardsFor(c, n) : []; };
 
   /* ---------- icons (authored, one stroke weight) ---------- */
   const I = {
@@ -83,7 +90,7 @@
         <div class="prg-bar" aria-label="Progress by week">${weekBar}</div>
         <dl class="prg-stats"><div><dt>Sessions</dt><dd class="num">${Math.min(k, c.nodes.length)}<small>/${c.nodes.length}</small></dd></div><div><dt>Today</dt><dd class="num">${Math.min(tx, 999)}<small>/${GOAL} XP</small></dd></div><div><dt>Streak</dt><dd class="num">${g.streak || 0}<small> days</small></dd></div><div><dt>Gold splits</dt><dd class="num gold">${golds}</dd></div><div><dt>Sum of best</dt><dd class="num">${sob ? fmtT(sob) : "–"}</dd></div></dl></header>
       <div class="prg-body"><div class="sheet">${c.units.map((u) => { const un = c.nodes.filter((x) => x.unit === u.i), f = un.filter((x) => d[x.id]).length;
-          return `<section class="wk ${f === un.length ? "wk-done" : ""}"><div class="wk-l"><span class="wk-n num">W${u.i + 1}</span><h2>${E(u.title)}</h2><p>${E(u.sub || "")}</p><span class="wk-c num">${f}/${un.length}</span></div><div class="wk-s">${un.map(cell).join("")}</div></section>`; }).join("")}</div>${panel}</div></div>`;
+          return `<section class="wk ${f === un.length ? "wk-done" : ""}"><div class="wk-l"><span class="wk-n num">W${u.i + 1}</span><h2>${E(u.title)}</h2><p>${E(u.sub || "")}</p><span class="wk-c num">${f}/${un.length}</span>${u.i >= 1 && c.nodes.some((x) => x.unit < u.i && !d[x.id]) ? `<button class="btn wk-skip" data-pa="go" data-c="${cid}" data-id="${cid}-skip-${u.i}">Skip ahead to here</button>` : ""}</div><div class="wk-s">${un.map(cell).join("")}</div></section>`; }).join("")}</div>${panel}</div></div>`;
     const now = main.querySelector(".ses.now"); const rm = matchMedia("(prefers-reduced-motion:reduce)").matches;
     if (now && (justDone || !matchMedia("(max-width:980px)").matches)) setTimeout(() => now.scrollIntoView({ behavior: justDone && !rm ? "smooth" : "auto", block: "center" }), justDone ? 500 : 30);
     justDone = null;
@@ -92,7 +99,7 @@
   /* ---------- the session runner ---------- */
   let R = null;
   const start = (cid, id) => {
-    const c = C[cid], node = c && c.nodes.find((x) => x.id === id); if (!node) return (location.hash = "#/path/" + cid);
+    const c = C[cid], node = c && findNode(c, id); if (!node) return (location.hash = "#/path/" + cid);
     const cards = cardsFor(c, node), prev = ps(cid).done[id];
     if (!cards.length) { GR.game.toast("This session has no exercises yet."); return (location.hash = "#/path/" + cid); }
     R = { c, node, items: cards.map((card, i) => ({ card, i })), pos: 0, total: cards.length, cleared: new Set(), lives: LIVES, graded: 0, firstOk: 0, missed: new Set(), start: Date.now(), streak: 0, st: null, prev };
@@ -178,9 +185,20 @@
   const outOfLives = () => { const g = GR.game.state();
     host().innerHTML = `<div class="ln ln-end">${top()}<div class="log"><span class="log-stamp bad">Failed set</span><h2>Out of lives</h2><p class="lead">Five misses in one session. They're queued up again, so a refill lets you finish strong, or start the session fresh.</p>
       <div class="row log-b"><button class="btn primary" data-pa="refill" ${g.coins < REFILL ? "disabled" : ""}>Refill lives · ${REFILL} coins</button><button class="btn" data-pa="retry">Start over</button><button class="btn" data-pa="quit">Back to the program</button></div>${g.coins < REFILL ? `<p class="muted">You have ${g.coins} coins.</p>` : ""}</div></div>`; };
+  const finishSkip = (c, node, acc, secs, rec) => {
+    const d = ps(c.id).done, pass = acc >= SKIP_PASS, skipped = pass ? c.nodes.filter((n) => n.unit < node.unit && !d[n.id]) : [];
+    skipped.forEach((n) => { d[n.id] = { ts: Date.now(), acc, secs: 0, runs: 1, skipped: true }; });
+    if (skipped.length) GR.game.reward(25, 10, null); GR.save(); if (pass) GR.game.confetti(80);
+    const nx = GR.pathNext(c.id);
+    host().innerHTML = `<div class="ln ln-end"><div class="log"><span class="log-stamp ${pass ? "gold" : "bad"}">${pass ? "Skipped ahead" : "Not yet"}</span><h2>${E(node.title)}</h2><p class="lead">${pass ? (skipped.length ? `${skipped.length} sessions before Week ${node.unit + 1} are stamped done.` : "Those weeks were already done.") : `You need ${Math.round(SKIP_PASS * 100)}% to skip. Review the weeks or try again.`}</p>
+      <table class="log-t"><tr><th>Time</th><td class="num">${fmtT(secs)}</td></tr><tr><th>Accuracy</th><td class="num">${Math.round(acc * 100)}%</td></tr>${skipped.length ? `<tr><th>XP</th><td class="num">+25</td></tr>` : ""}</table>
+      <div class="row log-b">${pass && nx ? `<button class="btn primary" data-pa="go" data-c="${c.id}" data-id="${nx.node.id}">Next: ${E(nx.node.title)}</button>` : `<button class="btn primary" data-pa="retry">Try again</button>`}<button class="btn" data-pa="topath">Back to the program</button></div></div></div>`;
+    R = null; setTimeout(() => GR.game.flushLevel(), 1300);
+  };
   const finish = () => {
     const c = R.c, node = R.node, d = ps(c.id).done, prev = d[node.id], acc = R.graded ? R.firstOk / R.graded : 1, secs = Math.max(1, Math.round((Date.now() - R.start) / 1000));
     const rec = { type: "lesson", total: R.graded, score: R.firstOk, scaled: null }; if (R.graded) GR.game.sessionEnd(rec);
+    if (node.kind === "skip") return finishSkip(c, node, acc, secs, rec);
     const isGold = !!prev && !!prev.best && secs < prev.best && acc >= (prev.bestAcc ?? prev.acc ?? 0) && acc > 0;
     const bonus = !prev ? (node.kind === "pr" ? 30 : node.kind === "test" ? 20 : 10) : isGold ? 15 : 3, coinB = !prev ? (node.kind === "pr" ? 12 : node.kind === "test" ? 10 : 3) : isGold ? 6 : 1; GR.game.reward(bonus, coinB, null);
     const best = prev && prev.best ? Math.min(prev.best, secs) : secs, bestAcc = Math.max(acc, prev ? prev.bestAcc ?? prev.acc ?? 0 : 0);
@@ -222,7 +240,7 @@
   document.addEventListener("click", (e) => {
     const b = e.target.closest("[data-pa]"); if (!b || b.disabled || suppress) return;
     const a = b.dataset.pa;
-    if (a === "go") { e.preventDefault(); const c = C[b.dataset.c], node = c.nodes.find((x) => x.id === b.dataset.id), i = c.nodes.indexOf(node), k = curIdx(c);
+    if (a === "go") { e.preventDefault(); const c = C[b.dataset.c], node = findNode(c, b.dataset.id), i = c.nodes.indexOf(node), k = curIdx(c);
       if (i > k) { b.classList.remove("shake"); void b.offsetWidth; b.classList.add("shake"); GR.game.toast("Finish the sessions before this one first."); return; }
       location.hash = `#/learn/${c.id}/${node.id}`; return; }
     if (!R) { if (a === "topath" || a === "quit") { e.preventDefault(); location.hash = "#/path/" + (GR.state.pathLast || "lc"); } return; }
