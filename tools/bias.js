@@ -1,0 +1,9 @@
+const fs=require("fs"),path=require("path"),vm=require("vm");const root=process.argv[2],store={};
+const ctx={URL,Blob:function(){},Worker:function(){},matchMedia:()=>({matches:true}),console,Math,JSON,Date,Set,Map,Array,Object,String,Number,Promise,setTimeout,clearTimeout,localStorage:{getItem:k=>store[k]??null,setItem:(k,v)=>store[k]=String(v),removeItem:k=>delete store[k]},document:{addEventListener(){},querySelector(){return null},body:{classList:{toggle(){}}},documentElement:{dataset:{}}},addEventListener(){},location:{hash:""}};
+ctx.window=ctx;vm.createContext(ctx);
+for(const f of ["core","curriculum","track-fnd","track-sd","track-fin","track-lc","bank-ml","bank-ai","bank-ag","bank-ds","bank-ba","bank-swe","bank-lc","sets-a","sets-b","sets-c","sets-d","diagrams-a","diagrams-b","diagrams-c","diagrams-lc","extras","coding","coding-lc","anim","path","path-lc","courses-auto","iv-a","iv-b","iv-c"])vm.runInContext(fs.readFileSync(path.join(root,"js",f+".js"),"utf8"),ctx);
+const GR=ctx.GR;let tot=0,longest=0,all=0,sess=0;const kinds={};
+for(const [cid,c] of Object.entries(GR.courses)){let t=0,l=0;for(const n of c.nodes){if(!/interview-loop/.test(n.id)||n.kind==="test")continue;for(const x of GR.pathCards(cid,n.id)){if(x.k!=="mcq")continue;t++;const L=x.opts.map(o=>String(o).length);if(L[0]===Math.max(...L)&&L.filter(v=>v===L[0]).length===1)l++}}console.log(cid,"iv mcq",t,"correct strictly longest",l)}
+// overall course stats
+for(const [cid,c] of Object.entries(GR.courses)){const k={};let words=0;for(const n of c.nodes){for(const x of GR.pathCards(cid,n.id)){k[x.k]=(k[x.k]||0)+1;if(x.k==="learn")words+=String(x.text||"").replace(/<[^>]+>/g," ").split(/\s+/).length}}console.log(cid,"learn words",words,k)}
+console.log("coding problems",GR.problems.length,"by lang",GR.problems.reduce((a,p)=>{a[p.lang||p.type||"?"]=(a[p.lang||p.type||"?"]||0)+1;return a},{}));
