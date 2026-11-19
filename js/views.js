@@ -243,14 +243,14 @@
       ${GR.session ? `<a class="resume" href="#/session">Resume: ${E(GR.session.title)}</a>` : ""}
       <a href="#/" class="${h === "#/" ? "on" : ""}">Dashboard</a>
       <div class="ng">Tracks</div>${GR.tracks.map((t) => `<a href="#/track/${t.id}" class="${h === "#/track/" + t.id || (h.startsWith("#/lesson/" + t.id + ".")) ? "on" : ""}"><span class="tk sm" style="background:${t.color}">${t.icon}</span><span class="nt">${E(t.name)}</span><em>${pct(GR.trackMastery(t.id))}%</em></a>`).join("")}
-      <div class="ng">Practice</div><a href="#/tests" class="${h === "#/tests" ? "on" : ""}">Mock tests</a><a href="#/code" class="${h.startsWith("#/code") ? "on" : ""}">Coding practice</a><a href="#/lab" class="${h.startsWith("#/lab") ? "on" : ""}">Interactive lab</a>
+      <div class="ng">Practice</div><a href="#/lc" class="${h.startsWith("#/lc") ? "on" : ""}">LeetCode hub</a><a href="#/tests" class="${h === "#/tests" ? "on" : ""}">Mock tests</a><a href="#/code" class="${h.startsWith("#/code") ? "on" : ""}">Coding practice</a><a href="#/lab" class="${h.startsWith("#/lab") ? "on" : ""}">Interactive lab</a>
       <div class="ng">You</div><a href="#/progress" class="${h === "#/progress" ? "on" : ""}">Progress</a><a href="#/profile" class="${h === "#/profile" ? "on" : ""}">Profile & achievements</a><a href="#/shop" class="${h === "#/shop" ? "on" : ""}">Shop</a><a href="#/market" class="${h === "#/market" ? "on" : ""}">Coin exchange</a>
       <button class="theme" data-act="theme" aria-label="Switch to ${dark() ? "light" : "dark"} mode">${dark() ? `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4.2"/><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M4.9 19.1l1.8-1.8M17.3 6.7l1.8-1.8"/></svg>` : `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M20.5 14.5A8.5 8.5 0 1 1 9.5 3.5a7 7 0 0 0 11 11z"/></svg>`}<span>${dark() ? "Light mode" : "Dark mode"}</span></button>`; };
   const dark = () => document.documentElement.dataset.theme !== "light";
   const route = () => {
     clearInterval(timer); const [, a, b] = (location.hash || "#/").split("/");
-    ({ track: () => vTrack(b), lesson: () => vLesson(b), session: vSession, results: () => vResults(b), tests: vTests, progress: vProgress, lab: () => vLab(b), code: () => (b ? vCode(b) : vCodeList()), shop: () => GR.game.view("shop", main()), profile: () => GR.game.view("profile", main()), market: () => GR.game.view("market", main()) }[a] || vDash)();
-    nav(); GR.game.afterRoute(a, b); if (a !== "session" || !GR.session || GR.session.i === 0) window.scrollTo(0, 0);
+    ({ track: () => vTrack(b), lesson: () => vLesson(b), session: vSession, results: () => vResults(b), tests: vTests, progress: vProgress, lab: () => vLab(b), code: () => (b ? vCode(b) : vCodeList()), shop: () => GR.game.view("shop", main()), profile: () => GR.game.view("profile", main()), market: () => GR.game.view("market", main()) }[a] || (GR.routes && GR.routes[a] ? () => GR.routes[a](main(), b) : vDash))();
+    nav(); GR.game.afterRoute(a, b); (GR.hooks || []).forEach((f) => f(a, b)); if (a !== "session" || !GR.session || GR.session.i === 0) window.scrollTo(0, 0);
   };
 
   const acts = Object.assign({

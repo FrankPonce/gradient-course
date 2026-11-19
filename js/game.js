@@ -183,5 +183,6 @@
     if (a === "results") { const r = GR.state.sessions.find((x) => x.id === b), h = $(".thead"); if (r && r.loot && h) h.insertAdjacentHTML("afterend", `<div class="loot"><span class="cap">Session loot</span><b>+${fmt(r.loot.xp)} XP</b><b>${coinI} +${fmt(r.loot.coins)}</b>${r.loot.best >= 3 ? `<b>${r.loot.best}× best combo</b>` : ""}</div>`); } };
   const init = () => { applyLook(); mountPet(); embers(); quests(); };
 
-  GR.game = { answer, sessionStart, sessionEnd, lesson, codeTry, decorateSession, hud, view, acts, afterRoute, init, state: G, levelOf, titleOf, need, price, PETS, TITLES, ACH, toast };
+  const reward = (xp, coins, label) => { if (label) toast(`<b>${label}</b> <em>+${xp} XP · +${coins} coins</em>`, "gold"); float(`+${xp} XP`, "xp"); sfx("coin"); gain(xp, coins); };
+  GR.game = { reward, confetti, answer, sessionStart, sessionEnd, lesson, codeTry, decorateSession, hud, view, acts, afterRoute, init, state: G, levelOf, titleOf, need, price, PETS, TITLES, ACH, toast };
 })();

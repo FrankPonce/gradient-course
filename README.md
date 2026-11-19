@@ -10,7 +10,7 @@
 ![Backend](https://img.shields.io/badge/backend-none%20·%20localStorage-d8d2c4?style=for-the-badge&labelColor=0c0b0b)
 ![Dependencies](https://img.shields.io/badge/dependencies-0-a8191f?style=for-the-badge&labelColor=0c0b0b)
 
-[**▶ Play it live**](http://frankponce.me/gradient-course/) · [**Overview**](#-overview) · [**Features**](#-features) · [**Game layer**](#-the-game-layer) · [**Tracks**](#-the-nine-tracks) · [**Mastery engine**](#-how-mastery-works) · [**Design**](#-design) · [**Architecture**](#%EF%B8%8F-architecture) · [**Quickstart**](#-quickstart) · [**Adding content**](#%EF%B8%8F-adding-content) · [**Repo map**](#%EF%B8%8F-repository-map)
+[**▶ Play it live**](http://frankponce.me/gradient-course/) · [**Overview**](#-overview) · [**Features**](#-features) · [**LeetCode hub**](#-the-leetcode-hub) · [**Game layer**](#-the-game-layer) · [**Tracks**](#-the-ten-tracks) · [**Mastery engine**](#-how-mastery-works) · [**Design**](#-design) · [**Architecture**](#%EF%B8%8F-architecture) · [**Quickstart**](#-quickstart) · [**Adding content**](#%EF%B8%8F-adding-content) · [**Repo map**](#%EF%B8%8F-repository-map)
 
 </div>
 
@@ -18,7 +18,7 @@
 
 ## 🎯 Overview
 
-GRADIENT is a **self-contained, adaptive course** for interview prep and upskilling across machine learning, generative AI, agentic AI, ML system design, statistics, analytics, software engineering and investing, with a gentle Foundations track to start from. It's also a game: XP, levels with increasingly unhinged career titles, coins, streaks, daily quests, a shop with cursed pets, and a fake stock exchange for your coins. Every answer updates a per-skill ability estimate, and the course steers you to whatever needs work next: lesson, practice set, targeted drill or full mock test.
+GRADIENT is a **self-contained, adaptive course** for interview prep and upskilling across coding interviews (LeetCode and HackerRank), machine learning, generative AI, agentic AI, ML system design, statistics, analytics, software engineering and investing, with a gentle Foundations track to start from. It's also a game: XP, levels with increasingly unhinged career titles, coins, streaks, daily quests, a shop with cursed pets, and a fake stock exchange for your coins. Every answer updates a per-skill ability estimate, and the course steers you to whatever needs work next: lesson, practice set, targeted drill or full mock test.
 
 > *Got Rejected Again. Decided I'm (an) Ex-larper Now. Training.* The name is the plan.
 
@@ -46,16 +46,32 @@ GRADIENT is a **self-contained, adaptive course** for interview prep and upskill
 
 | Area | What it does |
 |---|---|
-| 📚 **Curriculum** | 9 tracks → 35 modules → topics → **114 lessons**, each teaching exactly one skill, with key takeaways and links to related skills |
-| ❓ **Question bank** | **~730 hand-written questions** with explanations, plus **119 parametric generators** that produce new numbers on every draw, so you can't memorize the answer key |
-| 🧩 **Cases** | **66 multi-part cases** (342 linked questions) built around a shared table, code listing, chart, trace or diagram · 27 regenerate their data on every draw · each part can credit a different skill |
+| 📚 **Curriculum** | 10 tracks → 41 modules → topics → **141 lessons**, each teaching exactly one skill, with key takeaways and links to related skills |
+| ❓ **Question bank** | **~850 hand-written questions** with explanations, plus **132 parametric generators** that produce new numbers on every draw, so you can't memorize the answer key |
+| 🧩 **Cases** | **73 multi-part cases** (372 linked questions) built around a shared table, code listing, chart, trace or diagram · 27 regenerate their data on every draw · each part can credit a different skill |
 | 🎯 **Practice modes** | Per-skill practice · 20-question module quizzes · targeted drills on your weakest skills · a 30-question placement diagnostic that seeds your skill map on day one |
-| ⏱️ **Mock tests** | 3 one-hour tests per track + 4 cross-track mixes (including an AI-engineer mix) · 31 tests in all · timed, no feedback until submit · scored on a difficulty-weighted **200–800** scale · full review with explanations |
+| ⏱️ **Mock tests** | 3 one-hour tests per track + 4 cross-track mixes (including an AI-engineer mix) · 34 tests in all · timed, no feedback until submit · scored on a difficulty-weighted **200–800** scale · full review with explanations |
 | 📈 **Analytics** | Mastery per skill, module and track · score history · strengths and weaknesses · improving and slipping skills · a full skill map |
-| 🔬 **Interactive lab** | **19 hands-on diagrams**: compounding and fees, agent reliability and cost, gradient descent, polynomial fit, regression, ROC thresholds, k-means, neural nets, self-attention, temperature, CLT, Bayes, A/B power, SQL joins, funnels, sorting, binary search, BFS/DFS, Big-O |
-| 💻 **Coding** | **36 problems** runnable in the browser: 26 in **Python or JavaScript** against test cases, plus **10 SQL problems** run in real SQLite against two datasets each · hints, approach and solutions · submissions feed the same skill mastery as quizzes |
+| 🔬 **Interactive lab** | **37 hands-on diagrams**, including **18 step-through algorithm visualizers** (below), compounding and fees, agent reliability and cost, gradient descent, polynomial fit, regression, ROC thresholds, k-means, neural nets, self-attention, temperature, CLT, Bayes, A/B power, SQL joins, funnels, sorting, binary search, BFS/DFS, Big-O |
+| 💻 **Coding** | **65 problems** runnable in the browser: 55 in **Python or JavaScript** against test cases (two of them HackerRank-style raw input/output), plus **10 SQL problems** run in real SQLite against two datasets each · hints, approach and solutions · submissions feed the same skill mastery as quizzes |
 | 🌒 **Themes** | Gothic dark mode by default, a parchment light mode one click away · choice is remembered · every chart and diagram follows the theme |
 | 💾 **Your data** | Progress lives in your browser's localStorage · export and import it as JSON from the Progress page · one-click reset |
+
+---
+
+## 🧩 The LeetCode hub
+
+The most elaborate part of the course: a full coding-interview program at `#/lc`.
+
+| | |
+|---|---|
+| 🗺️ **Pattern map** | ~18 patterns that cover most interview problems (hashing, two pointers, sliding window, prefix sums, binary search on the answer, monotonic stacks, linked lists, heaps, intervals, tree recursion, BSTs, tries, BFS/DFS, topological sort, union-find, Dijkstra, backtracking, 1-D and 2-D DP, greedy, bit tricks). Each has a lesson with "reach for it when you see…" signals and a reusable Python template |
+| ▶️ **18 algorithm visualizers** | Step-through players with play, pause, step back and forward (or ← →), a speed control and your own input. The executing line of code is highlighted, and the pointers, stacks, queues, heaps, hash maps, DP tables, recursion trees and graphs update at every step |
+| 🧠 **Pattern-recognition drill** | Problems described in plain words; you name the pattern. Trains the skill interviews actually test |
+| ✅ **Classic problem tracker** | 152 well-known LeetCode problems grouped by pattern and difficulty, linked to LeetCode, with filters. Ticking one pays XP and coins |
+| 💻 **Solve them here** | 30 interview problems that run in the browser in Python or JavaScript, including HackerRank-style problems that parse raw input |
+| ⏱️ **Mock interview** | A random medium problem with a 45-minute timer, phase prompts ("clarify", "code while narrating", "test"), and hints hidden until you finish |
+| 🎤 **The interview itself** | Lessons on online assessments (HackerRank, CodeSignal), the live coding round, behavioral stories (STAR), an 8-week study plan, and offers and negotiation |
 
 ---
 
@@ -78,10 +94,11 @@ Everything lives in your browser's localStorage, alongside your progress, and co
 
 ---
 
-## 🧭 The nine tracks
+## 🧭 The ten tracks
 
 | | Track | What it covers |
 |:---:|---|---|
+| ![LC](https://img.shields.io/badge/LC-2BA4D9?style=flat-square) | **Coding Interviews** | LeetCode and HackerRank prep: problem-solving process, complexity budgets, the pattern map, hashing through dynamic programming with templates and visualizers, plus online assessments, live coding rounds, behavioral interviews, study planning and negotiation |
 | ![FND](https://img.shields.io/badge/FND-6E7681?style=flat-square) | **Foundations** | The on-ramp: functions, exponents and logs, derivatives and gradients, vectors and matrices, averages and probability, Python essentials, NumPy, pandas, kinds of data, the life of a data project, how interviews work |
 | ![ML](https://img.shields.io/badge/ML-BE8A34?style=flat-square) | **Machine Learning** | The learning setup, bias/variance, gradient descent, regularization, linear and logistic regression, trees and ensembles, k-NN and SVMs, metrics, ROC/AUC, cross-validation and leakage, k-means, PCA |
 | ![AI](https://img.shields.io/badge/AI-C0232D?style=flat-square) | **Deep Learning & Generative AI** | Neurons and backprop, training deep nets, CNNs, RNNs/LSTMs, attention and transformers, tokens and embeddings, pretraining and sampling, prompting and RAG, tool use and agents, evals, serving and monitoring |
@@ -243,6 +260,8 @@ P(id, title, difficulty, skill, { desc, js, py, tests, hint, approach, sol })
 │   ├── track-fnd.js      # Foundations: lessons, questions and cases in one file
 │   ├── track-sd.js       # ML System Design
 │   ├── track-fin.js      # Investing & Trading
+│   ├── track-lc.js       # Coding Interviews: lessons + the 152-problem classic list
+│   ├── bank-lc.js        # its questions, pattern-recognition drill and cases
 │   ├── extras.js         # gap-filler lessons (boosting, imbalance, fine-tuning, causal inference, estimation), compounding diagram, more problems
 │   ├── bank-ds.js
 │   ├── bank-ba.js
@@ -254,8 +273,11 @@ P(id, title, difficulty, skill, { desc, js, py, tests, hint, approach, sol })
 │   ├── diagrams-a.js     # lab toolkit + ML/AI diagrams
 │   ├── diagrams-b.js     # stats, analytics and algorithm diagrams
 │   ├── diagrams-c.js     # agent reliability and cost
+│   ├── diagrams-lc.js    # step-through player + 18 algorithm visualizers
 │   ├── coding.js         # coding + SQL problems; JS (Worker), Python (Pyodide) and SQL (sql.js) runners
+│   ├── coding-lc.js      # 30 interview problems, including HackerRank-style I/O
 │   ├── game.js           # XP, levels, coins, quests, achievements, shop, pets, coin exchange, effects
+│   ├── lc-hub.js         # LeetCode hub: pattern map, tracker, cheat sheets, study plan, mock interview
 │   └── views.js          # router, dashboard, track, lesson, sessions, results, tests, progress, lab, coding
 ├── assets/
 │   └── banner.jpg
