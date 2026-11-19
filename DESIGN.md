@@ -29,7 +29,7 @@ colors:
   light-gold: "#7A5200"
 typography:
   display:
-    fontFamily: "Grenze Gotisch, Pirata One, Georgia, serif"
+    fontFamily: "Gothic Mix, Grenze Gotisch, Pirata One, Georgia, serif"
     fontWeight: 700
   wordmark:
     fontFamily: "Pirata One, Grenze Gotisch, serif"
@@ -109,7 +109,7 @@ Dark values are the defaults; light values are listed in the front matter with t
 
 ## 3. Typography
 
-- **Display** Grenze Gotisch (Pirata One fallback): page titles (46px on program head, 34px lesson headings, 28px Today title), 700. Wordmark in Pirata One 30px.
+- **Display** Gothic Mix (Grenze Gotisch lowercase and digits, plain Grenze capitals, self-hosted in assets/fonts; user asked for readable capitals; Pirata One fallback): page titles (46px on program head, 34px lesson headings, 28px Today title), 700. Wordmark in Pirata One 30px.
 - **UI** Bricolage Grotesque: labels, buttons (600, 14px), stamps (800), stats (700), cell titles (600 14.5px/1.3).
 - **Body** Inter, 15px/1.6; session text 17.5px/1.65 capped at 65ch; prompts 21px/1.4 600.
 - **Mono** JetBrains Mono 13px for code, token chips, line numbers and every time/number in the program layer (`.num`: mono, tabular-nums). Ligatures are disabled in code.

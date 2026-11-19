@@ -6,7 +6,7 @@
     "light": { "bg": "#F3EEE6", "paper": "#FBF8F3", "card": "#EAE3D8", "rule": "#DAD1C3", "ink": "#161313", "ink2": "#4D4643", "mute": "#8A817B", "or": "#A8191F", "blood": "#A8191F", "bad": "#B12848", "green": "#4B7A28", "gold": "#7A5200", "code": "#141111", "glow": "transparent" }
   },
   "fonts": {
-    "display": "Grenze Gotisch, Pirata One, Georgia, serif",
+    "display": "Gothic Mix, Grenze Gotisch, Pirata One, Georgia, serif",
     "wordmark": "Pirata One, Grenze Gotisch, serif",
     "ui": "Bricolage Grotesque, Inter, Segoe UI, system-ui, sans-serif",
     "body": "Inter, Segoe UI, system-ui, sans-serif",
