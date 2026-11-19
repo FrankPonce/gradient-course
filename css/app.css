@@ -58,7 +58,7 @@ pre{background:var(--code);color:var(--code-ink);padding:12px 14px;border-radius
 #nav a:hover{background:var(--card);color:var(--ink);text-decoration:none} #nav a.on{background:var(--blood);color:#fff} #nav a.on em{opacity:.9}
 #nav a em{margin-left:auto;font-style:normal;font-size:12px;font-weight:700;opacity:.6;font-variant-numeric:tabular-nums} #nav .nt{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 #nav .brand{margin:0 0 16px;padding:4px 6px;clip-path:none;gap:10px;color:var(--ink)} #nav .brand:hover{background:none}
-#nav .brand b{font:400 30px/1 var(--word);letter-spacing:.02em;color:var(--ink)} #nav .brand .mark{flex:none;margin-top:2px;transition:transform .3s var(--ease)} #nav .brand:hover .mark{transform:rotate(-8deg)}
+#nav .brand b{font:700 27px/1 var(--goth);letter-spacing:.06em;color:var(--ink)} #nav .brand .mark{flex:none;margin-top:2px;transition:transform .3s var(--ease)} #nav .brand:hover .mark{transform:rotate(-8deg)}
 #nav .ng{display:flex;align-items:center;gap:8px;font:700 10.5px var(--ui);letter-spacing:.2em;text-transform:uppercase;color:var(--mute);padding:18px 10px 6px}
 #nav .ng::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,var(--rule),transparent)}
 #nav .resume{background:var(--or);color:#fff;font-weight:700;margin-bottom:8px;font-size:13px} #nav .resume:hover{background:var(--blood);color:#fff}
@@ -190,7 +190,7 @@ button.opt:hover:not(:disabled){border-color:var(--mute);background:var(--card);
 @media (max-width:900px){#app{grid-template-columns:minmax(0,1fr)}#nav a{padding:6px 10px;font-size:13px}.sess-top{align-items:flex-start}.qcard{padding:18px 16px}.stem{font-size:16.5px}}
 /* brand backronym */
 #nav .brand{align-items:flex-start} #nav .brand .bn{display:flex;flex-direction:column;line-height:1.15} #nav .brand small{font:500 10.5px/1.35 var(--ui);color:var(--mute);margin-top:5px;white-space:normal}
-.hero .cap b{color:var(--or);font-weight:800}
+.hero .cap b{color:var(--or);font-weight:inherit;font-size:inherit}
 
 /* ================= game layer ================= */
 #embers{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.8} #confetti{position:fixed;inset:0;z-index:300;pointer-events:none}
@@ -430,3 +430,4 @@ pre,code,.ln-code,.chip-b,.ord-line,.slot,#ed,.av-code{font-variant-ligatures:no
 .subtabs{display:flex;flex-wrap:wrap;gap:4px;margin:0 0 22px;border-bottom:1px solid var(--rule)} .subtabs a{padding:10px 16px;margin-bottom:-1px;font:600 14px var(--ui);color:var(--ink2);border-bottom:2px solid transparent} .subtabs a:hover{color:var(--ink);text-decoration:none} .subtabs a.on{color:var(--ink);border-bottom-color:var(--or)}
 .pr-card{display:flex;flex-direction:column;gap:8px;padding:22px;color:var(--ink)} .pr-card:hover{text-decoration:none;border-color:var(--or)} .pr-card .nico{width:26px;height:26px;color:var(--or)} .pr-card b{font:600 18px var(--ui)}
 .rec .rl{color:var(--ink)} .rec .rl:hover{text-decoration:underline}
+.mk>summary{display:flex;align-items:center;gap:12px;cursor:pointer;list-style:none;padding:2px 0} .mk>summary::-webkit-details-marker{display:none} .mk>summary h3{margin:0;display:flex;align-items:center;gap:10px;flex:1} .mk>summary small{color:var(--ink2)} .mk>summary::after{content:"+";font:600 20px var(--ui);color:var(--ink2)} .mk[open]>summary::after{content:"–"} .mk[open]>summary{margin-bottom:8px}
