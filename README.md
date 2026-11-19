@@ -10,7 +10,7 @@
 ![Backend](https://img.shields.io/badge/backend-none%20·%20localStorage-d8d2c4?style=for-the-badge&labelColor=0c0b0b)
 ![Dependencies](https://img.shields.io/badge/dependencies-0-a8191f?style=for-the-badge&labelColor=0c0b0b)
 
-[**▶ Play it live**](http://frankponce.me/gradient-course/) · [**Overview**](#-overview) · [**Features**](#-features) · [**LeetCode hub**](#-the-leetcode-hub) · [**Game layer**](#-the-game-layer) · [**Tracks**](#-the-ten-tracks) · [**Mastery engine**](#-how-mastery-works) · [**Design**](#-design) · [**Architecture**](#%EF%B8%8F-architecture) · [**Quickstart**](#-quickstart) · [**Adding content**](#%EF%B8%8F-adding-content) · [**Repo map**](#%EF%B8%8F-repository-map)
+[**▶ Play it live**](https://frankponce.me/gradient-course/) · [**Overview**](#-overview) · [**Features**](#-features) · [**LeetCode hub**](#-the-leetcode-hub) · [**Game layer**](#-the-game-layer) · [**Tracks**](#-the-ten-tracks) · [**Mastery engine**](#-how-mastery-works) · [**Design**](#-design) · [**Architecture**](#%EF%B8%8F-architecture) · [**Quickstart**](#-quickstart) · [**Adding content**](#%EF%B8%8F-adding-content) · [**Repo map**](#%EF%B8%8F-repository-map)
 
 </div>
 
@@ -173,7 +173,7 @@ flowchart LR
 
 ## 🚀 Quickstart
 
-**Play it live: [frankponce.me/gradient-course](http://frankponce.me/gradient-course/)** (deployed from `main` with GitHub Pages; every push redeploys).
+**Play it live: [frankponce.me/gradient-course](https://frankponce.me/gradient-course/)** (deployed from `main` with GitHub Pages; every push redeploys).
 
 Or run it locally.
 Any static file server works. With Python:
