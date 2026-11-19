@@ -6,7 +6,7 @@ const ctx = { URL, Blob: function () {}, Worker: function () {}, matchMedia: () 
   localStorage: { getItem: (k) => store[k] ?? null, setItem: (k, v) => (store[k] = String(v)), removeItem: (k) => delete store[k] },
   document: { addEventListener() {}, querySelector() { return null; }, body: { classList: { toggle() {} } }, documentElement: { dataset: {} } }, addEventListener() {}, location: { hash: "" } };
 ctx.window = ctx; vm.createContext(ctx);
-const files = ["core", "curriculum", "track-fnd", "track-sd", "track-fin", "track-lc", "bank-ml", "bank-ai", "bank-ag", "bank-ds", "bank-ba", "bank-swe", "bank-lc", "sets-a", "sets-b", "sets-c", "sets-d", "diagrams-a", "diagrams-b", "diagrams-c", "diagrams-lc", "extras", "coding", "coding-lc", "anim", "path", "path-lc", "courses-auto"];
+const files = ["core", "curriculum", "track-fnd", "track-sd", "track-fin", "track-lc", "bank-ml", "bank-ai", "bank-ag", "bank-ds", "bank-ba", "bank-swe", "bank-lc", "sets-a", "sets-b", "sets-c", "sets-d", "diagrams-a", "diagrams-b", "diagrams-c", "diagrams-lc", "extras", "coding", "coding-lc", "anim", "path", "path-lc", "courses-auto", "iv-a", "iv-b", "iv-c"];
 for (const f of files) vm.runInContext(fs.readFileSync(path.join(root, "js", f + ".js"), "utf8"), ctx, { filename: f });
 const seen = new Set(), GR = ctx.GR, errs = [], bad = (m) => errs.push(m);
 const skills = new Set(Object.keys(GR.skills));

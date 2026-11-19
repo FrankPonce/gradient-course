@@ -1,3 +1,7 @@
+@font-face{font-family:"Gothic Mix";font-weight:600;font-display:swap;src:url(../assets/fonts/grenze-600.ttf) format("truetype");unicode-range:U+0041-005A}
+@font-face{font-family:"Gothic Mix";font-weight:600;font-display:swap;src:url(../assets/fonts/grenze-gotisch-600.ttf) format("truetype");unicode-range:U+0000-0040,U+005B-FFFF}
+@font-face{font-family:"Gothic Mix";font-weight:700;font-display:swap;src:url(../assets/fonts/grenze-700.ttf) format("truetype");unicode-range:U+0041-005A}
+@font-face{font-family:"Gothic Mix";font-weight:700;font-display:swap;src:url(../assets/fonts/grenze-gotisch-700.ttf) format("truetype");unicode-range:U+0000-0040,U+005B-FFFF}
 /* GRADIENT — gothic theme. Dark (default) and light share every rule; only the variables change.
    Palette drawn from stray-club.shop (blood, bone, soot) and frankponce.dev (crimson, hex shapes, sigils). */
 :root,[data-theme="dark"]{
@@ -20,7 +24,7 @@
 }
 :root{
   --ease:cubic-bezier(.22,.9,.24,1); --r:14px;
-  --goth:"Grenze Gotisch","Pirata One",Georgia,serif; --word:"Pirata One","Grenze Gotisch",serif;
+  --goth:"Gothic Mix","Grenze Gotisch","Pirata One",Georgia,serif; --word:"Pirata One","Grenze Gotisch",serif;
   --ui:"Bricolage Grotesque",Inter,"Segoe UI",system-ui,sans-serif; --body:Inter,"Segoe UI",system-ui,sans-serif;
   --hex:polygon(10px 0,calc(100% - 10px) 0,100% 50%,calc(100% - 10px) 100%,10px 100%,0 50%);
   --hexs:polygon(6px 0,calc(100% - 6px) 0,100% 50%,calc(100% - 6px) 100%,6px 100%,0 50%);
@@ -408,5 +412,21 @@ pre,code,.ln-code,.chip-b,.ord-line,.slot,#ed,.av-code{font-variant-ligatures:no
 
 .wk-skip{margin-top:10px;min-height:36px;padding:6px 12px;font-size:13px}
 .cont-roles{display:flex;flex-wrap:wrap;gap:0;border-top:1px solid var(--rule)} .cont-roles h2{flex:1 1 100%;margin:0;padding:10px 14px 0;font:600 12.5px var(--ui);color:var(--ink2)}
-.cont-roles .role{flex:1 1 190px;display:flex;flex-direction:column;gap:6px;padding:8px 14px 12px;border-right:1px solid var(--rule);color:var(--ink)} .cont-roles .role:hover{text-decoration:none;background:var(--card)} .cont-roles .role b{font:600 14px var(--ui)}
+.cont-roles .role{flex:1 1 150px;display:flex;flex-direction:column;gap:6px;padding:8px 14px 12px;border-right:1px solid var(--rule);color:var(--ink)} .cont-roles .role:hover{text-decoration:none;background:var(--card)} .cont-roles .role b{font:600 14px var(--ui)}
 .role-steps{display:flex;flex-wrap:wrap;gap:4px 6px;font:500 11.5px var(--ui);color:var(--ink2)} "/";margin-right:6px;color:var(--rule)} .role-steps .on{color:var(--ink);text-decoration:line-through} .role-steps .now{color:var(--or);font-weight:700}
+/* navigation: icons, one current-program row, icon-only utility row */
+#nav .nico{width:18px;height:18px;flex:none}
+#nav .nsub{margin:-1px 0 2px 26px;padding:5px 12px;font-size:12.5px;color:var(--ink2);border-left:1px solid var(--rule);clip-path:none;gap:8px} #nav .nsub .nt{flex:1} #nav .nsub:hover{background:var(--card)} #nav .nsub.on{background:transparent;color:var(--ink);border-left-color:var(--or)} #nav .nsub em{opacity:.7}
+#nav .nyou{margin-top:auto;display:grid;grid-template-columns:repeat(5,1fr);gap:4px;padding-top:12px;border-top:1px solid var(--rule)}
+#nav .nyou a,#nav .nyou .theme{margin:0;justify-content:center;padding:10px 0;clip-path:none;border-radius:8px;background:transparent;color:var(--ink2);min-height:40px} #nav .nyou a:hover,#nav .nyou .theme:hover{background:var(--card);color:var(--ink)} #nav .nyou a.on{background:var(--blood);color:#fff}
+.hero.slim{margin-bottom:18px} .hero.slim h1{margin:0}
+.plink{display:flex;flex-direction:column;gap:2px;padding:16px 20px;margin-top:20px;color:var(--ink)} .plink:hover{text-decoration:none;border-color:var(--or)}
+.pcard{display:flex;flex-direction:column} .pcard .tcard{flex:1} .pg{display:block;padding:8px 14px;font:600 12.5px var(--ui);color:var(--ink2);border:1px solid var(--rule);border-top:0} .pg:hover{color:var(--ink);text-decoration:none;background:var(--card)}
+.roles-only{margin-bottom:22px}
+@media (max-width:900px){#nav .nt{display:none} #nav .nsub .nt{display:inline} #nav>a:not(.brand):not(.resume):not(.hud):not(.nsub){padding:9px 11px} #nav .nyou{margin-top:0;border-top:0;padding-top:0;display:contents} #nav .nyou a,#nav .nyou .theme{padding:9px 11px;min-height:0}}
+@media (max-width:900px){#nav{align-items:center} #nav>a,#nav .nyou a{align-self:center}}
+.role-steps span+span::before{content:"/";margin-right:6px;color:var(--mute)}
+#nav .nyou{display:flex;grid-template-columns:none;justify-content:flex-start}
+.subtabs{display:flex;flex-wrap:wrap;gap:4px;margin:0 0 22px;border-bottom:1px solid var(--rule)} .subtabs a{padding:10px 16px;margin-bottom:-1px;font:600 14px var(--ui);color:var(--ink2);border-bottom:2px solid transparent} .subtabs a:hover{color:var(--ink);text-decoration:none} .subtabs a.on{color:var(--ink);border-bottom-color:var(--or)}
+.pr-card{display:flex;flex-direction:column;gap:8px;padding:22px;color:var(--ink)} .pr-card:hover{text-decoration:none;border-color:var(--or)} .pr-card .nico{width:26px;height:26px;color:var(--or)} .pr-card b{font:600 18px var(--ui)}
+.rec .rl{color:var(--ink)} .rec .rl:hover{text-decoration:underline}
