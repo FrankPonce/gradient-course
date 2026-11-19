@@ -407,3 +407,6 @@ body.focus #app{grid-template-columns:minmax(0,1fr)} body.focus #nav{display:non
 pre,code,.ln-code,.chip-b,.ord-line,.slot,#ed,.av-code{font-variant-ligatures:none}
 
 .wk-skip{margin-top:10px;min-height:36px;padding:6px 12px;font-size:13px}
+.cont-roles{display:flex;flex-wrap:wrap;gap:0;border-top:1px solid var(--rule)} .cont-roles h2{flex:1 1 100%;margin:0;padding:10px 14px 0;font:600 12.5px var(--ui);color:var(--ink2)}
+.cont-roles .role{flex:1 1 190px;display:flex;flex-direction:column;gap:6px;padding:8px 14px 12px;border-right:1px solid var(--rule);color:var(--ink)} .cont-roles .role:hover{text-decoration:none;background:var(--card)} .cont-roles .role b{font:600 14px var(--ui)}
+.role-steps{display:flex;flex-wrap:wrap;gap:4px 6px;font:500 11.5px var(--ui);color:var(--ink2)} "/";margin-right:6px;color:var(--rule)} .role-steps .on{color:var(--ink);text-decoration:line-through} .role-steps .now{color:var(--or);font-weight:700}

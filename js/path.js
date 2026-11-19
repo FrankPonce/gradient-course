@@ -20,6 +20,7 @@
   const PRAISE = ["Clean rep.", "Correct.", "That's the one.", "Nailed it.", "Good lift.", "Right."];
   const KIND = { learn: "Learn", drill: "Drill", problem: "Problem", pr: "PR attempt", test: "Test", skip: "Skip-ahead exam" };
   const SKIP_PASS = 0.8;
+  const ROLES = [["Data analyst", ["fnd", "ba", "ds"]], ["Data scientist", ["fnd", "ds", "ml", "ba", "sd"]], ["ML engineer", ["fnd", "ml", "ai", "sd", "lc"]], ["AI engineer", ["fnd", "ai", "ag", "sd"]], ["Software engineer", ["lc", "swe", "sd"]]];
   const KIND_EX = { mcq: "Multiple choice", fill: "Fill the blanks", ord: "Order the lines", rank: "Rank", match: "Match pairs", bins: "Sort into groups", bug: "Find the bug", num: "Work it out", learn: "Watch and read" };
   const fmtT = (s) => (s === undefined || s === null ? "–" : `${Math.floor(s / 60)}:${String(Math.round(s % 60)).padStart(2, "0")}`);
 
@@ -308,5 +309,6 @@
   /* dashboard: continue where you left off, plus every program's progress */
   GR.hooks.push((a) => { if (a) return; const hero = $(".hero"); if (!hero) return; const ids = Object.keys(C); if (!ids.length) return; const cur = C[GR.state.pathLast] ? GR.state.pathLast : ids[0], c = C[cur], nx = GR.pathNext(cur), d = ps(cur).done, done = c.nodes.filter((n) => d[n.id]).length;
     hero.insertAdjacentHTML("afterend", `<section class="cont" style="--pc:${c.color}"><a class="cont-main" href="${nx ? `#/learn/${cur}/${nx.node.id}` : "#/path/" + cur}"><div><span class="cont-k">${E(c.title)} · Week ${nx ? nx.node.unit + 1 : c.units.length}</span><b>${nx ? E(nx.node.title) : "Program complete"}</b><span class="cont-meta">${nx ? `${KIND[nx.node.kind]} · about ${est(nx.node)} min · ${done}/${c.nodes.length} sessions` : "Replay sessions to chase gold splits"}</span></div><span class="btn primary">${done ? "Continue" : "Start"}</span></a>
-      <div class="cont-all">${ids.map((id) => { const cc = C[id], dd = ps(id).done, f = cc.nodes.filter((n) => dd[n.id]).length; return `<a href="#/path/${id}" class="${id === cur ? "on" : ""}" style="--pc:${cc.color}"><span>${E(cc.short || cc.title)}</span><i><b style="width:${(f / cc.nodes.length) * 100}%"></b></i></a>`; }).join("")}</div></section>`); });
+      <div class="cont-all">${ids.map((id) => { const cc = C[id], dd = ps(id).done, f = cc.nodes.filter((n) => dd[n.id]).length; return `<a href="#/path/${id}" class="${id === cur ? "on" : ""}" style="--pc:${cc.color}"><span>${E(cc.short || cc.title)}</span><i><b style="width:${(f / cc.nodes.length) * 100}%"></b></i></a>`; }).join("")}</div>
+      <div class="cont-roles"><h2>Role paths</h2>${ROLES.map(([name, tr]) => { const ts = tr.filter((t) => C[t]), pct = (t) => { const dd = ps(t).done; return C[t].nodes.filter((n) => dd[n.id]).length / C[t].nodes.length; }, nextT = ts.find((t) => pct(t) < 1) || ts[0]; return `<a href="#/path/${nextT}" class="role"><b>${E(name)}</b><span class="role-steps">${ts.map((t) => `<span class="${pct(t) >= 1 ? "on" : t === nextT ? "now" : ""}">${E(C[t].short || C[t].title)}</span>`).join("")}</span></a>`; }).join("")}</div></section>`); });
 })();
