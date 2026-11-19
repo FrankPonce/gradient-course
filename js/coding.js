@@ -179,6 +179,42 @@
     approach: "First loop over schema.required and report missing names. Then sort the argument keys; for each, report unknown keys, otherwise compare the value's type with the schema's. O(r + a log a).",
     sol: "function validateCall(schema, args) {\n  const kind = (v) => Array.isArray(v) ? \"array\" : typeof v;\n  const errs = schema.required.filter((r) => !(r in args)).map((r) => \"missing: \" + r);\n  for (const k of Object.keys(args).sort()) {\n    if (!(k in schema.props)) errs.push(\"unknown: \" + k);\n    else if (kind(args[k]) !== schema.props[k]) errs.push(\"type: \" + k);\n  }\n  return errs;\n}" });
 
+  /* ---------- SQL problems: run in SQLite (sql.js) against two datasets and compared with the reference query ---------- */
+  const mkSql = (emp, cust, ord) => "CREATE TABLE employees (id INTEGER PRIMARY KEY, name TEXT, dept TEXT, salary INTEGER, manager_id INTEGER);\n" + emp.map((r) => `INSERT INTO employees VALUES (${r[0]}, '${r[1]}', '${r[2]}', ${r[3]}, ${r[4] === null ? "NULL" : r[4]});`).join("\n") +
+    "\nCREATE TABLE customers (id INTEGER PRIMARY KEY, name TEXT, country TEXT);\n" + cust.map((r) => `INSERT INTO customers VALUES (${r[0]}, '${r[1]}', '${r[2]}');`).join("\n") +
+    "\nCREATE TABLE orders (id INTEGER PRIMARY KEY, customer_id INTEGER, amount REAL, status TEXT, day TEXT);\n" + ord.map((r) => `INSERT INTO orders VALUES (${r[0]}, ${r[1]}, ${r[2]}, '${r[3]}', '${r[4]}');`).join("\n");
+  const EMP_A = [[1, "Ada", "Engineering", 150000, null], [2, "Linus", "Engineering", 120000, 1], [3, "Grace", "Engineering", 125000, 1], [4, "Alan", "Engineering", 95000, 2], [5, "Edsger", "Data", 110000, null], [6, "Barbara", "Data", 115000, 5], [7, "Ken", "Data", 90000, 5], [8, "Margaret", "Sales", 70000, null], [9, "Dennis", "Sales", 82000, 8], [10, "Radia", "Marketing", 68000, null]];
+  const CUST_A = [[1, "Acme", "US"], [2, "Bolt", "DE"], [3, "Cyan", "FI"], [4, "Dune", "US"], [5, "Echo", "FI"]];
+  const ORD_A = [[1, 1, 120, "completed", "2026-01-05"], [2, 1, 80, "completed", "2026-01-05"], [3, 2, 200, "completed", "2026-01-07"], [4, 3, 50, "cancelled", "2026-01-07"], [5, 3, 75.5, "completed", "2026-02-02"], [6, 2, 20, "completed", "2026-02-10"], [7, 1, 300, "completed", "2026-03-01"], [8, 4, 60, "cancelled", "2026-03-03"], [9, 2, 150, "completed", "2026-03-15"]];
+  const EMP_B = [[1, "Zoe", "Engineering", 140000, null], [2, "Yann", "Engineering", 101000, 1], [3, "Xena", "Engineering", 99000, 1], [4, "Will", "Data", 130000, null], [5, "Vera", "Data", 135000, 4], [6, "Uma", "Data", 88000, 4], [7, "Theo", "Data", 91000, 5], [8, "Sam", "Sales", 60000, null], [9, "Rita", "Sales", 60000, 8], [10, "Quinn", "Support", 50000, null], [11, "Pia", "Engineering", 140000, 1]];
+  const CUST_B = [[1, "Nova", "US"], [2, "Onyx", "SE"], [3, "Peak", "FI"], [4, "Quay", "NO"]];
+  const ORD_B = [[1, 1, 10, "completed", "2026-04-01"], [2, 3, 40, "completed", "2026-04-01"], [3, 3, 60, "completed", "2026-04-20"], [4, 1, 500, "cancelled", "2026-05-02"], [5, 1, 25, "completed", "2026-05-09"], [6, 3, 35, "completed", "2026-06-11"], [7, 1, 45, "completed", "2026-06-30"]];
+  const SETUPS = [mkSql(EMP_A, CUST_A, ORD_A), mkSql(EMP_B, CUST_B, ORD_B)];
+  const prev = (name, head, rows) => GR.tbl(head, rows.slice(0, 5).map((r) => r.map((v) => (v === null ? "NULL" : v))), `${name} (first rows)`);
+  const T_EMP = prev("employees", ["id", "name", "dept", "salary", "manager_id"], EMP_A), T_CUST = prev("customers", ["id", "name", "country"], CUST_A), T_ORD = prev("orders", ["id", "customer_id", "amount", "status", "day"], ORD_A);
+  const SQLP = (id, title, diff, skill, desc, tables, sol, o = {}) => P(id, title, diff, skill, Object.assign({ desc: desc + `<div class="sflex">${tables.join("")}</div><p class="muted">Column names in your result don't matter; the columns' order and values do${o.ordered ? ", and so does row order" : ". Row order doesn't matter here"}. Your query runs on two different datasets.</p>`, sql: ["", "-- write your query here\nSELECT\n"], setups: SETUPS, tests: SETUPS.map((_, i) => [["dataset " + (i + 1)], null]), sol, ordered: false }, o));
+
+  SQLP("sql-high-earners", "SQL: High Earners", 1, "ba.sql", "Return the <code>name</code> and <code>salary</code> of every employee in the <b>Engineering</b> department who earns more than 100,000, highest salary first (ties by name A→Z).", [T_EMP],
+    "SELECT name, salary\nFROM employees\nWHERE dept = 'Engineering' AND salary > 100000\nORDER BY salary DESC, name;", { ordered: true, hint: "Filter rows with WHERE before sorting with ORDER BY. Two conditions are joined with AND.", approach: "WHERE keeps only Engineering rows above the threshold; ORDER BY salary DESC, name sorts them." });
+  SQLP("sql-dept-stats", "SQL: Department Stats", 1, "ba.sql", "For each department return <code>dept</code>, the number of employees, and the average salary.", [T_EMP],
+    "SELECT dept, COUNT(*) AS headcount, AVG(salary) AS avg_salary\nFROM employees\nGROUP BY dept;", { hint: "GROUP BY collapses rows into one per department. COUNT(*) and AVG() are computed per group.", approach: "Group by dept, then aggregate. Every selected column must be either in GROUP BY or inside an aggregate." });
+  SQLP("sql-big-depts", "SQL: Departments With 3+ People", 2, "ba.sql", "Return <code>dept</code> and total salary cost for departments that have <b>at least 3</b> employees.", [T_EMP],
+    "SELECT dept, SUM(salary) AS total\nFROM employees\nGROUP BY dept\nHAVING COUNT(*) >= 3;", { hint: "WHERE filters rows before grouping. Which clause filters groups after aggregation?", approach: "GROUP BY dept, then HAVING COUNT(*) >= 3 keeps only large groups. WHERE cannot reference aggregates." });
+  SQLP("sql-revenue-by-customer", "SQL: Revenue per Customer", 1, "ba.joins", "Return each customer's <code>name</code> and their total <b>completed</b> order amount, for customers with at least one completed order. Largest total first.", [T_CUST, T_ORD],
+    "SELECT c.name, SUM(o.amount) AS revenue\nFROM customers c\nJOIN orders o ON o.customer_id = c.id\nWHERE o.status = 'completed'\nGROUP BY c.id, c.name\nORDER BY revenue DESC;", { ordered: true, hint: "Join orders to customers on the key, filter to completed orders, then group by customer.", approach: "An inner join keeps only customers with matching orders. Filter status in WHERE, aggregate with SUM, sort by the aggregate." });
+  SQLP("sql-never-ordered", "SQL: Customers Who Never Ordered", 2, "ba.joins", "Return the <code>name</code> of every customer with <b>no orders at all</b> (any status).", [T_CUST, T_ORD],
+    "SELECT c.name\nFROM customers c\nLEFT JOIN orders o ON o.customer_id = c.id\nWHERE o.id IS NULL;", { hint: "A LEFT JOIN keeps customers without a match and fills the order columns with NULL.", approach: "The anti-join pattern: LEFT JOIN, then keep rows where the right side's key IS NULL. NOT EXISTS works too." });
+  SQLP("sql-earn-more-than-manager", "SQL: Earning More Than the Boss", 2, "ba.joins", "Return the <code>name</code> of every employee whose salary is higher than their manager's. <code>manager_id</code> points to another row in the same table.", [T_EMP],
+    "SELECT e.name\nFROM employees e\nJOIN employees m ON m.id = e.manager_id\nWHERE e.salary > m.salary;", { hint: "Join the table to itself: one alias for the employee, one for the manager.", approach: "A self join pairs each employee row with its manager row; then compare the two salaries." });
+  SQLP("sql-second-highest", "SQL: Second-Highest Salary", 2, "ba.sql", "Return a single value: the second-highest <b>distinct</b> salary in the company.", [T_EMP],
+    "SELECT MAX(salary)\nFROM employees\nWHERE salary < (SELECT MAX(salary) FROM employees);", { hint: "What is the highest salary among those strictly below the maximum?", approach: "A scalar subquery finds the top salary; the outer MAX finds the best of the rest. DENSE_RANK() = 2 also works." });
+  SQLP("sql-top2-per-dept", "SQL: Top 2 Earners per Department", 2, "ba.window", "For each department return <code>dept</code>, <code>name</code> and <code>salary</code> of the two highest-paid employees. Break salary ties by name A→Z.", [T_EMP],
+    "WITH ranked AS (\n  SELECT dept, name, salary,\n         ROW_NUMBER() OVER (PARTITION BY dept ORDER BY salary DESC, name) AS rn\n  FROM employees\n)\nSELECT dept, name, salary\nFROM ranked\nWHERE rn <= 2;", { hint: "Number the rows within each department with a window function, then filter on that number in an outer query.", approach: "ROW_NUMBER() OVER (PARTITION BY dept ORDER BY salary DESC, name) ranks within each department. Window results can't be filtered in the same SELECT, so wrap it in a CTE." });
+  SQLP("sql-running-total", "SQL: Running Revenue", 2, "ba.window", "For each <code>day</code> with completed orders return the day, that day's completed revenue, and the <b>running total</b> of completed revenue up to and including that day. Earliest day first.", [T_ORD],
+    "SELECT day, SUM(amount) AS revenue,\n       SUM(SUM(amount)) OVER (ORDER BY day) AS running\nFROM orders\nWHERE status = 'completed'\nGROUP BY day\nORDER BY day;", { ordered: true, hint: "First get one row per day. A window SUM with ORDER BY and no PARTITION BY accumulates across rows.", approach: "Aggregate to daily revenue, then SUM(...) OVER (ORDER BY day) gives the cumulative total. You can nest the aggregate inside the window function or use a CTE." });
+  SQLP("sql-month-over-month", "SQL: Month-over-Month Change", 3, "ba.window", "For each month (as <code>YYYY-MM</code>) with completed orders return the month, its completed revenue, and the <b>change from the previous month</b> (NULL for the first month). Earliest month first.", [T_ORD],
+    "WITH m AS (\n  SELECT substr(day, 1, 7) AS month, SUM(amount) AS revenue\n  FROM orders\n  WHERE status = 'completed'\n  GROUP BY 1\n)\nSELECT month, revenue, revenue - LAG(revenue) OVER (ORDER BY month) AS change\nFROM m\nORDER BY month;", { ordered: true, hint: "Build monthly revenue in a CTE (substr(day, 1, 7) gives YYYY-MM). LAG() reads the previous row's value.", approach: "Monthly totals in a CTE, then LAG(revenue) OVER (ORDER BY month) fetches the prior month; subtract to get the change." });
+
   /* ---------- comparison ---------- */
   const approx = (a, b) => typeof a === "number" && typeof b === "number" ? Math.abs(a - b) <= 1e-6 * Math.max(1, Math.abs(b)) : Array.isArray(a) && Array.isArray(b) ? a.length === b.length && a.every((v, i) => approx(v, b[i])) : a === b;
   const canon = (v, deep) => Array.isArray(v) ? JSON.stringify(v.map((x) => (deep && Array.isArray(x) ? JSON.stringify(x.slice().sort()) : JSON.stringify(x))).sort()) : JSON.stringify(v);
@@ -219,8 +255,19 @@ def __run(code, fn, tests):
     const ready = loadPyodide().then((py) => { py.runPython(${JSON.stringify(PY_HARNESS)}); postMessage({ ready: true }); return py; }).catch((err) => { postMessage({ fatal: String(err) }); });
     self.onmessage = async (e) => { const py = await ready; if (!py) return; const { code, fn, tests } = e.data;
       try { const run = py.globals.get("__run"); postMessage(JSON.parse(run(code, fn, JSON.stringify(tests)))); } catch (err) { postMessage({ error: String(err) }); } };`;
+  /* SQL: SQLite compiled to WebAssembly (sql.js). Each dataset gets a fresh database; the reference query defines the expected rows. */
+  const SQL_CDN = "https://cdn.jsdelivr.net/npm/sql.js@1.10.3/dist/";
+  const SQL_WORKER = `importScripts("${SQL_CDN}sql-wasm.js");
+    const ready = initSqlJs({ locateFile: (f) => "${SQL_CDN}" + f }).then((S) => { postMessage({ ready: true }); return S; }).catch((err) => { postMessage({ fatal: "Could not load the SQL engine. It is downloaded from a CDN on first use, so an internet connection is required. (" + err + ")" }); });
+    const run = (S, setup, q) => { const db = new S.Database(); try { db.run(setup); const r = db.exec(q), last = r[r.length - 1]; return last ? { cols: last.columns, rows: last.values } : { cols: [], rows: [] }; } finally { db.close(); } };
+    self.onmessage = async (e) => { const S = await ready; if (!S) return; const { code, setups, ref } = e.data, out = [];
+      for (const st of setups) { let exp; try { exp = run(S, st, ref); } catch (err) { postMessage({ error: "Reference query failed: " + err }); return; }
+        try { out.push({ got: run(S, st, code), exp, logs: [] }); } catch (err) { out.push({ err: String(err.message || err), exp, logs: [] }); } }
+      postMessage({ results: out }); };`;
+  const sqlNorm = (v) => (typeof v === "number" ? Math.round(v * 1e6) / 1e6 : v);
+  GR.sqlEqual = (got, exp, ordered) => { if (!got || !exp || got.rows.length !== exp.rows.length) return false; const key = (t) => { const r = t.rows.map((row) => JSON.stringify(row.map(sqlNorm))); return ordered ? r : r.sort(); }; const a = key(got), b = key(exp); return a.every((x, i) => x === b[i]); };
   const mk = (src) => new Worker(URL.createObjectURL(new Blob([src], { type: "text/javascript" })));
-  let pyW = null, pyReady = false, pyWait = [];
+  let pyW = null, pyReady = false, pyWait = [], sqlW = null, sqlReady = false, sqlWait = [];
   const pyWorker = () => { if (pyW) return pyW; pyReady = false; pyW = mk(PY_WORKER);
     const onFirst = (e) => { if (e.data.ready) { pyReady = true; pyWait.splice(0).forEach((f) => f(null)); pyW.removeEventListener("message", onFirst); } else if (e.data.fatal) { const w = pyWait.splice(0); pyW.terminate(); pyW = null; w.forEach((f) => f(e.data.fatal)); } };
     pyW.addEventListener("message", onFirst); pyW.addEventListener("error", () => { const w = pyWait.splice(0); pyW = null; w.forEach((f) => f("Could not load the Python runtime. It is downloaded from a CDN on first use, so an internet connection is required.")); });
@@ -229,7 +276,20 @@ def __run(code, fn, tests):
   GR.runCode = (p, lang, code, onStatus = () => {}) => new Promise((resolve) => {
     const tests = p.tests.map((t) => t[0]), fn = p[lang][0];
     const finish = (d) => { if (d.results) d.results.forEach((r, i) => { r.args = p.tests[i][0]; r.exp = p.tests[i][1]; r.pass = !r.err && GR.codeEqual(p, r.got, r.exp); }); resolve(d); };
-    if (lang === "js") {
+    if (lang === "sql") {
+      /* the engine (about 1 MB) is loaded once and kept; the time limit only counts query execution */
+      const go = () => { onStatus("Running…"); const w = sqlW;
+        const to = setTimeout(() => { w.terminate(); sqlW = null; resolve({ error: "Time limit exceeded (8 s). Check for a runaway recursive query or a huge cross join." }); }, 8000);
+        const h = (e) => { if (e.data.ready) return; clearTimeout(to); w.removeEventListener("message", h); const d = e.data; if (d.results) d.results.forEach((r, i) => { r.args = p.tests[i][0]; r.pass = !r.err && GR.sqlEqual(r.got, r.exp, p.ordered); }); resolve(d); };
+        w.addEventListener("message", h); w.postMessage({ code, setups: p.setups.slice(0, p.tests.length), ref: p.sol }); };
+      if (sqlW && sqlReady) return go();
+      onStatus("Loading the SQL engine (first run only, a few seconds)…");
+      if (!sqlW) { sqlReady = false; sqlW = mk(SQL_WORKER);
+        const lt = setTimeout(() => { if (sqlReady) return; sqlW.terminate(); sqlW = null; sqlWait.splice(0).forEach((f) => f("The SQL engine took too long to download. Check your connection and try again.")); }, 45000);
+        sqlW.addEventListener("message", (e) => { if (e.data.ready) { clearTimeout(lt); sqlReady = true; sqlWait.splice(0).forEach((f) => f(null)); } else if (e.data.fatal) { clearTimeout(lt); sqlW.terminate(); sqlW = null; sqlWait.splice(0).forEach((f) => f(e.data.fatal)); } });
+        sqlW.addEventListener("error", () => { clearTimeout(lt); sqlW = null; sqlWait.splice(0).forEach((f) => f("Could not start the SQL engine.")); }); }
+      sqlWait.push((err) => (err ? resolve({ error: err }) : go()));
+    } else if (lang === "js") {
       const w = mk(JS_WORKER), to = setTimeout(() => { w.terminate(); resolve({ error: "Time limit exceeded (3 s). Check for an infinite loop or an exponential algorithm." }); }, 3000);
       w.onmessage = (e) => { clearTimeout(to); w.terminate(); finish(e.data); }; w.onerror = (e) => { clearTimeout(to); w.terminate(); resolve({ error: e.message || "Script error" }); };
       w.postMessage({ code, fn, tests });

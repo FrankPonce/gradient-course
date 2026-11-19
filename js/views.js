@@ -19,7 +19,7 @@
     const items = GR.draw({ skills: cfg.skills, n: cfg.n, seed: cfg.seed, weights: cfg.weights, genShare: cfg.genShare });
     if (!items.length) return alert("No questions available for this selection yet.");
     const before = {}; items.forEach((q) => (before[q.skill] = GR.mastery(q.skill)));
-    GR.session = Object.assign({}, cfg, { items, picks: items.map(() => null), flags: {}, i: 0, start: Date.now(), before });
+    GR.session = Object.assign({}, cfg, { items, picks: items.map(() => null), flags: {}, i: 0, start: Date.now(), before }); GR.game.sessionStart();
     if (location.hash === "#/session") route(); else location.hash = "#/session";
   };
   const practiceSkill = (sid, n = 7) => start({ type: "practice", title: "Practice: " + GR.skills[sid].name, track: GR.skills[sid].track, ref: sid, skills: [sid], n, genShare: 0.35 });
@@ -46,7 +46,7 @@
       items: s.items.map((q, i) => ({ skill: q.skill, diff: q.diff, stem: q.stem, options: q.options, answer: q.answer, pick: s.picks[i], expl: q.expl, stim: q.stim, setTitle: q.setTitle, part: q.part, parts: q.parts })).filter((q) => s.type === "mock" || q.pick !== null) };
     GR.session = null;
     if (!answered) { location.hash = "#/"; return; }
-    GR.state.sessions.push(rec); GR.save(); location.hash = "#/results/" + rec.id;
+    GR.game.sessionEnd(rec); GR.state.sessions.push(rec); GR.save(); location.hash = "#/results/" + rec.id;
   };
 
   const vSession = () => {
@@ -68,11 +68,12 @@
         <div class="qfoot">${mock ? `<button class="btn sm" data-act="flag">${s.flags[s.i] ? "Unflag" : "Flag for review"}</button><span class="grow"></span><button class="btn" data-act="prev" ${s.i ? "" : "disabled"}>Previous</button><button class="btn primary" data-act="${last ? "quit" : "next"}">${last ? "Submit test" : "Next"}</button>`
           : `<span class="hintk">Keys: 1–4 to answer, Enter for next</span><span class="grow"></span>${shown ? `<button class="btn primary" data-act="${last ? "finish" : "next"}">${last ? "See results" : "Next question"}</button>` : `<button class="btn" data-act="skip">Skip</button>`}`}</div>
       </div></div>`;
+    GR.game.decorateSession(s);
     clearInterval(timer);
     if (mock) timer = setInterval(() => { const c = $("#clock"); if (!GR.session || !c) return clearInterval(timer); const t = left(); c.textContent = clock(t); c.classList.toggle("low", t < 300); if (t <= 0) { alert("Time is up. Your test is being submitted."); finish(); } }, 500);
   };
   const sessAct = {
-    pick(d) { const s = GR.session, q = s.items[s.i]; if (s.type === "mock") { s.picks[s.i] = s.picks[s.i] === +d.i ? null : +d.i; } else { if (s.picks[s.i] !== null) return; s.picks[s.i] = +d.i; GR.record(q, +d.i === q.answer); GR.save(); } vSession(); },
+    pick(d) { const s = GR.session, q = s.items[s.i]; if (s.type === "mock") { s.picks[s.i] = s.picks[s.i] === +d.i ? null : +d.i; } else { if (s.picks[s.i] !== null || (s.cut && s.cut[s.i] && s.cut[s.i].includes(+d.i))) return; s.picks[s.i] = +d.i; GR.record(q, +d.i === q.answer); GR.game.answer(q, +d.i === q.answer); GR.save(); } vSession(); },
     next() { const s = GR.session; if (s.i < s.items.length - 1) { s.i++; vSession(); } },
     prev() { const s = GR.session; if (s.i > 0) { s.i--; vSession(); } },
     skip() { const s = GR.session; if (s.i < s.items.length - 1) { s.i++; vSession(); } else finish(); },
@@ -112,6 +113,7 @@
   /* ---------- lesson ---------- */
   const mountDiagram = (id, host) => { const d = GR.diagrams[id]; if (!d || !host) return; host.innerHTML = `<div class="dg-head"><div><div class="cap">Interactive diagram</div><h3>${E(d.title)}</h3><p>${E(d.blurb)}</p></div></div><div class="dg-body"></div><div class="dg-tasks"><b>Try it</b><ol>${d.tasks.map((x) => `<li>${E(x)}</li>`).join("")}</ol></div>`; try { d.mount($(".dg-body", host)); } catch (e) { console.error(e); $(".dg-body", host).innerHTML = `<p class="muted">This diagram failed to load: ${E(e.message)}</p>`; } };
   const vLesson = (sid) => {
+    GR.game.lesson(sid);
     const s = GR.skills[sid]; if (!s) return vDash(); const t = GR.trackOf(s.track), l = s.lesson, i = t.skills.indexOf(sid), lv = GR.level(sid), st = GR.state.skills[sid], ps = GR.poolSize([sid]);
     if (!GR.state.lessons[sid]) { GR.state.lessons[sid] = Date.now(); GR.save(); }
     main().innerHTML = `${crumb(["Dashboard", "#/"], [t.name, "#/track/" + t.id], [GR.moduleOf(s.module).name], [s.topic])}
@@ -195,21 +197,23 @@
   const cst = (id) => GR.state.code[id] || (GR.state.code[id] = { solved: false, tries: 0, src: {} });
   const vCodeList = () => {
     const solved = GR.problems.filter((p) => (GR.state.code[p.id] || {}).solved).length;
-    main().innerHTML = `${crumb(["Dashboard", "#/"], ["Coding practice"])}<header class="thead">${ring(solved / GR.problems.length, LCOL[4], 96, `${solved}/${GR.problems.length}`)}<div><h1>Coding practice</h1><p class="lead">Write and run real code in the browser, in JavaScript or Python, against hidden-style test cases. Submissions feed the same skill mastery as quizzes. Problems cover classic interview patterns plus implement-it-yourself ML and analytics building blocks.</p></div></header>
-      <section class="card"><table class="tbl"><tr><th></th><th>Problem</th><th>Difficulty</th><th>Skill</th><th>Attempts</th></tr>${GR.problems.map((p) => { const c = GR.state.code[p.id] || {}, s = GR.skills[p.skill], t = GR.trackOf(s.track); return `<tr><td>${c.solved ? `<span class="pos">✓</span>` : ""}</td><td><a href="#/code/${p.id}"><b>${E(p.title)}</b></a></td><td>${diffTag(p.diff)}</td><td><span class="tk sm" style="background:${t.color}">${t.icon}</span> <a href="#/lesson/${p.skill}">${E(s.name)}</a></td><td>${c.tries || 0}</td></tr>`; }).join("")}</table></section>`;
+    main().innerHTML = `${crumb(["Dashboard", "#/"], ["Coding practice"])}<header class="thead">${ring(solved / GR.problems.length, LCOL[4], 96, `${solved}/${GR.problems.length}`)}<div><h1>Coding practice</h1><p class="lead">Write and run real code in the browser, in Python, JavaScript or SQL, against hidden-style test cases. Submissions feed the same skill mastery as quizzes. Problems cover classic interview patterns plus implement-it-yourself ML and analytics building blocks.</p></div></header>
+      <section class="card"><table class="tbl"><tr><th></th><th>Problem</th><th>Difficulty</th><th>Skill</th><th>Attempts</th></tr>${GR.problems.slice().sort((a, b) => !!a.sql - !!b.sql).map((p) => { const c = GR.state.code[p.id] || {}, s = GR.skills[p.skill], t = GR.trackOf(s.track); return `<tr><td>${c.solved ? `<span class="pos">✓</span>` : ""}</td><td><a href="#/code/${p.id}"><b>${E(p.title)}</b></a></td><td>${diffTag(p.diff)}</td><td><span class="tk sm" style="background:${t.color}">${t.icon}</span> <a href="#/lesson/${p.skill}">${E(s.name)}</a></td><td>${c.tries || 0}</td></tr>`; }).join("")}</table></section>`;
   };
-  let lang = localStorage.getItem("gradient.lang") || "py";
+  let LANG = localStorage.getItem("gradient.lang") || "py";
+  const sqlT = (t) => (!t ? "" : !t.rows.length ? `<p class="muted">(no rows)</p>` : GR.tbl(t.cols.map(E), t.rows.slice(0, 12).map((r) => r.map((v) => E(v === null ? "NULL" : typeof v === "number" ? Math.round(v * 1e4) / 1e4 : v)))) + (t.rows.length > 12 ? `<small class="muted">… ${t.rows.length - 12} more rows</small>` : ""));
+  const sqlRes = (r, i) => `<details class="tc ${r.pass ? "ok" : "no"}" open><summary>${r.pass ? "✓" : "✗"} Dataset ${i + 1}${r.pass || r.err ? "" : " · your result differs from the expected one"}</summary>${r.err ? `<div class="kv"><span>error</span><code>${E(r.err)}</code></div>` : `<div class="sflex"><div><div class="cap">Your result</div>${sqlT(r.got)}</div>${r.pass ? "" : `<div><div class="cap">Expected</div>${sqlT(r.exp)}</div>`}</div>`}</details>`;
   const fmtV = (v) => { const s = JSON.stringify(v); return s.length > 120 ? s.slice(0, 117) + "…" : s; };
   const vCode = (id) => {
-    const p = GR.problems.find((x) => x.id === id); if (!p) return vCodeList(); const c = cst(id), s = GR.skills[p.skill], i = GR.problems.indexOf(p);
+    const p = GR.problems.find((x) => x.id === id); if (!p) return vCodeList(); const lang = p.sql ? "sql" : LANG; const c = cst(id), s = GR.skills[p.skill], i = GR.problems.indexOf(p);
     main().innerHTML = `${crumb(["Dashboard", "#/"], ["Coding practice", "#/code"], [p.title])}
       <div class="code"><div class="cleft"><h1>${E(p.title)} ${c.solved ? `<span class="pos">✓</span>` : ""}</h1><div class="row">${diffTag(p.diff)}<a class="tag skill" href="#/lesson/${p.skill}">${E(s.name)}</a></div><div class="prose">${p.desc}</div>
           <details class="hint"><summary>Hint</summary><p>${E(p.hint)}</p></details>
           <details class="hint"><summary>Approach and complexity</summary><p>${E(p.approach)}</p></details>
-          <details class="hint"><summary>Reference solution (JavaScript)</summary><pre>${E(p.sol)}</pre></details>
+          <details class="hint"><summary>Reference solution (${p.sql ? "SQL" : "JavaScript"})</summary><pre>${E(p.sol)}</pre></details>
           <div class="lnav">${i > 0 ? `<a class="btn sm" href="#/code/${GR.problems[i - 1].id}">← Previous</a>` : "<span></span>"}${i < GR.problems.length - 1 ? `<a class="btn sm" href="#/code/${GR.problems[i + 1].id}">Next →</a>` : ""}</div></div>
-        <div class="cright"><div class="ebar"><div class="seg"><button data-act="lang" data-l="py" class="${lang === "py" ? "on" : ""}">Python</button><button data-act="lang" data-l="js" class="${lang === "js" ? "on" : ""}">JavaScript</button></div><span class="grow"></span><button class="btn sm" data-act="creset">Reset code</button><button class="btn sm" data-act="crun" data-id="${id}">Run examples</button><button class="btn sm primary" data-act="csubmit" data-id="${id}">Submit</button></div>
-          <textarea id="ed" spellcheck="false" autocapitalize="off" autocomplete="off">${E(c.src[lang] || p[lang][1])}</textarea><div id="out" class="out"><p class="muted">“Run examples” executes the first two test cases. “Submit” runs all ${p.tests.length} and updates your mastery of ${E(s.name)}.${lang === "py" ? " Python runs locally via Pyodide, downloaded once from a CDN." : ""}</p></div></div></div>`;
+        <div class="cright"><div class="ebar"><div class="seg">${p.sql ? `<button class="on">SQL · SQLite</button>` : `<button data-act="lang" data-l="py" class="${lang === "py" ? "on" : ""}">Python</button><button data-act="lang" data-l="js" class="${lang === "js" ? "on" : ""}">JavaScript</button>`}</div><span class="grow"></span><button class="btn sm" data-act="creset">Reset code</button><button class="btn sm" data-act="crun" data-id="${id}">Run examples</button><button class="btn sm primary" data-act="csubmit" data-id="${id}">Submit</button></div>
+          <textarea id="ed" spellcheck="false" autocapitalize="off" autocomplete="off">${E(c.src[lang] || p[lang][1])}</textarea><div id="out" class="out"><p class="muted">${p.sql ? "“Run examples” runs your query on the first dataset. “Submit” runs it on both and" : `“Run examples” executes the first two test cases. “Submit” runs all ${p.tests.length} and`} updates your mastery of ${E(s.name)}.${lang === "py" ? " Python runs locally via Pyodide, downloaded once from a CDN." : lang === "sql" ? " SQL runs locally in SQLite (sql.js), downloaded once from a CDN." : ""}</p></div></div></div>`;
     const ed = $("#ed");
     ed.addEventListener("input", () => { c.src[lang] = ed.value; });
     ed.addEventListener("keydown", (e) => { const ins = (t) => { const a = ed.selectionStart; ed.setRangeText(t, a, ed.selectionEnd, "end"); c.src[lang] = ed.value; };
@@ -219,33 +223,34 @@
   };
   let running = false;
   const runCode = (id, submit) => {
-    if (running) return; const p = GR.problems.find((x) => x.id === id), c = cst(id), out = $("#out"), code = $("#ed").value; c.src[lang] = code; running = true;
+    if (running) return; const p = GR.problems.find((x) => x.id === id), lang = p.sql ? "sql" : LANG, c = cst(id), out = $("#out"), code = $("#ed").value; c.src[lang] = code; running = true;
     out.innerHTML = `<p class="muted">Running…</p>`;
-    const prob = submit ? p : Object.assign({}, p, { tests: p.tests.slice(0, 2) });
+    const prob = submit ? p : Object.assign({}, p, { tests: p.tests.slice(0, p.sql ? 1 : 2) });
     GR.runCode(prob, lang, code, (msg) => (out.innerHTML = `<p class="muted">${E(msg)}</p>`)).then((d) => {
       running = false; if (!out.isConnected) return;
       if (d.error) { out.innerHTML = `<div class="expl no"><b>Error.</b> <code>${E(d.error)}</code></div>`; if (submit) { c.tries++; GR.save(); } return; }
       const ok = d.results.every((r) => r.pass), np = d.results.filter((r) => r.pass).length;
-      if (submit) { c.tries++; const first = ok && !c.solved; if (ok) c.solved = true; if (first || !ok) GR.record({ skill: p.skill, diff: p.diff, also: [], gen: true }, ok, ok ? 2 : 1); GR.save(); }
+      if (submit) { c.tries++; const first = ok && !c.solved; if (ok) c.solved = true; if (first || !ok) GR.record({ skill: p.skill, diff: p.diff, also: [], gen: true }, ok, ok ? 2 : 1); GR.game.codeTry(p, ok, first); GR.save(); }
       out.innerHTML = `<div class="expl ${ok ? "ok" : "no"}"><b>${ok ? (submit ? "Accepted." : "Examples pass.") : `${np} of ${d.results.length} passed.`}</b> ${ok && submit ? `All ${d.results.length} tests passed. Mastery of ${E(GR.skills[p.skill].name)} is now ${pct(GR.mastery(p.skill))}%.` : ok ? "Now submit to run the full test set." : ""}</div>` +
-        d.results.map((r, i) => `<details class="tc ${r.pass ? "ok" : "no"}" ${r.pass ? "" : "open"}><summary>${r.pass ? "✓" : "✗"} Test ${i + 1}</summary><div class="kv"><span>input</span><code>${E(r.args.map(fmtV).join(", "))}</code><span>expected</span><code>${E(fmtV(r.exp))}</code><span>${r.err ? "error" : "got"}</span><code>${E(r.err || fmtV(r.got))}</code>${r.logs && r.logs.length ? `<span>stdout</span><code>${E(r.logs.join("\n"))}</code>` : ""}</div></details>`).join("");
+        d.results.map((r, i) => p.sql ? sqlRes(r, i) : `<details class="tc ${r.pass ? "ok" : "no"}" ${r.pass ? "" : "open"}><summary>${r.pass ? "✓" : "✗"} Test ${i + 1}</summary><div class="kv"><span>input</span><code>${E(r.args.map(fmtV).join(", "))}</code><span>expected</span><code>${E(fmtV(r.exp))}</code><span>${r.err ? "error" : "got"}</span><code>${E(r.err || fmtV(r.got))}</code>${r.logs && r.logs.length ? `<span>stdout</span><code>${E(r.logs.join("\n"))}</code>` : ""}</div></details>`).join("");
     });
   };
 
   /* ---------- router ---------- */
   const nav = () => { const h = location.hash || "#/"; $("#nav").innerHTML = `
       <a class="brand" href="#/"><svg class="mark" width="34" height="34" viewBox="-2 -2 36 36" aria-hidden="true"><path d="M3 24 C10 24 10 10 16 10 S22 20 26 8" fill="none" stroke="var(--ink)" stroke-width="2.4" stroke-linecap="round"/><path d="M26 0 L27.3 6.7 L34 8 L27.3 9.3 L26 16 L24.7 9.3 L18 8 L24.7 6.7 Z" fill="var(--or)"/><circle cx="26" cy="8" r="1.3" fill="var(--bg)"/></svg><span class="bn"><b>GRADIENT</b><small>Got Rejected Again. Decided I’m (an) Ex-larper Now. Training.</small></span></a>
+      ${GR.game.hud()}
       ${GR.session ? `<a class="resume" href="#/session">Resume: ${E(GR.session.title)}</a>` : ""}
       <a href="#/" class="${h === "#/" ? "on" : ""}">Dashboard</a>
       <div class="ng">Tracks</div>${GR.tracks.map((t) => `<a href="#/track/${t.id}" class="${h === "#/track/" + t.id || (h.startsWith("#/lesson/" + t.id + ".")) ? "on" : ""}"><span class="tk sm" style="background:${t.color}">${t.icon}</span><span class="nt">${E(t.name)}</span><em>${pct(GR.trackMastery(t.id))}%</em></a>`).join("")}
       <div class="ng">Practice</div><a href="#/tests" class="${h === "#/tests" ? "on" : ""}">Mock tests</a><a href="#/code" class="${h.startsWith("#/code") ? "on" : ""}">Coding practice</a><a href="#/lab" class="${h.startsWith("#/lab") ? "on" : ""}">Interactive lab</a>
-      <div class="ng">You</div><a href="#/progress" class="${h === "#/progress" ? "on" : ""}">Progress</a>
+      <div class="ng">You</div><a href="#/progress" class="${h === "#/progress" ? "on" : ""}">Progress</a><a href="#/profile" class="${h === "#/profile" ? "on" : ""}">Profile & achievements</a><a href="#/shop" class="${h === "#/shop" ? "on" : ""}">Shop</a><a href="#/market" class="${h === "#/market" ? "on" : ""}">Coin exchange</a>
       <button class="theme" data-act="theme" aria-label="Switch to ${dark() ? "light" : "dark"} mode">${dark() ? `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4.2"/><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M4.9 19.1l1.8-1.8M17.3 6.7l1.8-1.8"/></svg>` : `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M20.5 14.5A8.5 8.5 0 1 1 9.5 3.5a7 7 0 0 0 11 11z"/></svg>`}<span>${dark() ? "Light mode" : "Dark mode"}</span></button>`; };
   const dark = () => document.documentElement.dataset.theme !== "light";
   const route = () => {
     clearInterval(timer); const [, a, b] = (location.hash || "#/").split("/");
-    ({ track: () => vTrack(b), lesson: () => vLesson(b), session: vSession, results: () => vResults(b), tests: vTests, progress: vProgress, lab: () => vLab(b), code: () => (b ? vCode(b) : vCodeList()) }[a] || vDash)();
-    nav(); if (a !== "session" || !GR.session || GR.session.i === 0) window.scrollTo(0, 0);
+    ({ track: () => vTrack(b), lesson: () => vLesson(b), session: vSession, results: () => vResults(b), tests: vTests, progress: vProgress, lab: () => vLab(b), code: () => (b ? vCode(b) : vCodeList()), shop: () => GR.game.view("shop", main()), profile: () => GR.game.view("profile", main()), market: () => GR.game.view("market", main()) }[a] || vDash)();
+    nav(); GR.game.afterRoute(a, b); if (a !== "session" || !GR.session || GR.session.i === 0) window.scrollTo(0, 0);
   };
 
   const acts = Object.assign({
@@ -254,11 +259,12 @@
     drill: (d) => { const sk = d.s.split(","); start({ type: "practice", title: "Drill: weakest skills from your last session", track: "mix", ref: "drill", skills: sk, n: Math.min(15, sk.length * 4) }); },
     rfilter: (d) => document.querySelectorAll("#review .rev").forEach((e) => (e.style.display = d.f === "wrong" && e.classList.contains("ok") ? "none" : "")),
     export: () => { const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([GR.exportData()], { type: "application/json" })); a.download = `gradient-progress-${new Date().toISOString().slice(0, 10)}.json`; a.click(); },
-    reset: () => { if (confirm("Delete all progress, scores and saved code in this browser? This cannot be undone.")) { GR.reset(); route(); } },
-    lang: (d) => { lang = d.l; localStorage.setItem("gradient.lang", lang); GR.save(); route(); },
-    creset: () => { const id = location.hash.split("/")[2], p = GR.problems.find((x) => x.id === id); if (p && confirm("Replace your code with the starter template?")) { cst(id).src[lang] = p[lang][1]; $("#ed").value = p[lang][1]; } },
+    reset: () => { if (confirm("Delete all progress, scores and saved code in this browser? This cannot be undone.")) { GR.reset(); location.reload(); } },
+    lang: (d) => { if (!d.l) return; LANG = d.l; localStorage.setItem("gradient.lang", LANG); GR.save(); route(); },
+    creset: () => { const id = location.hash.split("/")[2], p = GR.problems.find((x) => x.id === id), lang = p && p.sql ? "sql" : LANG; if (p && confirm("Replace your code with the starter template?")) { cst(id).src[lang] = p[lang][1]; $("#ed").value = p[lang][1]; } },
     crun: (d) => runCode(d.id, false), csubmit: (d) => runCode(d.id, true),
-  }, sessAct);
+  }, sessAct, GR.game.acts);
+  GR.game.rerender = () => { const y = window.scrollY, inSess = location.hash === "#/session"; document.body.classList.add("still"); if (inSess) vSession(); else { route(); window.scrollTo(0, y); } setTimeout(() => document.body.classList.remove("still"), 60); }; GR.game.onChange = () => { const h = $(".hud"); if (!h) return nav(); const t = document.createElement("div"); t.innerHTML = GR.game.hud(); const n = t.firstChild; h.querySelector(".xpbar i").style.width = n.querySelector(".xpbar i").style.width; h.querySelector(".hud-top").innerHTML = n.querySelector(".hud-top").innerHTML; h.querySelector("small").textContent = n.querySelector("small").textContent; };
   document.addEventListener("click", (e) => { const el = e.target.closest("[data-act]"); if (!el || el.disabled) return; const f = acts[el.dataset.act]; if (f) { e.preventDefault(); f(el.dataset); } });
   document.addEventListener("keydown", (e) => { const s = GR.session; if (!s || !location.hash.startsWith("#/session") || e.target.tagName === "TEXTAREA") return;
     if (e.key >= "1" && e.key <= "4" && +e.key <= s.items[s.i].options.length) sessAct.pick({ i: +e.key - 1 });
@@ -266,5 +272,5 @@
     else if (e.key === "ArrowLeft" && s.type === "mock") sessAct.prev(); });
   window.addEventListener("hashchange", route);
   window.addEventListener("beforeunload", (e) => { if (GR.session && GR.session.type === "mock") { e.preventDefault(); e.returnValue = ""; } });
-  window.addEventListener("DOMContentLoaded", () => { defineMocks(); route(); });
+  window.addEventListener("DOMContentLoaded", () => { defineMocks(); GR.game.init(); route(); });
 })();

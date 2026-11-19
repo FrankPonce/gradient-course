@@ -30,6 +30,17 @@
       }));
     });
   };
+  /* add a topic of lessons to an existing module (used by gap-filler files) */
+  GR.extend = (tid, moduleName, topicName, lessons) => {
+    const t = GR.tracks.find((x) => x.id === tid), m = t && t.modules.find((x) => x.name === moduleName);
+    if (!m) throw new Error(`GR.extend: no module "${moduleName}" in track ${tid}`);
+    m.topics.push({ name: topicName, lessons });
+    let at = t.skills.indexOf(m.skills[m.skills.length - 1]) + 1;
+    lessons.forEach((l) => {
+      GR.skills[l.skill] = { id: l.skill, name: l.title, track: t.id, module: m.id, topic: topicName, lesson: l, related: l.related || [], diagram: l.diagram, order: Object.keys(GR.skills).length };
+      m.skills.push(l.skill); t.skills.splice(at++, 0, l.skill);
+    });
+  };
   GR.trackOf = (id) => GR.tracks.find((t) => t.id === id);
   GR.moduleOf = (id) => { for (const t of GR.tracks) for (const m of t.modules) if (m.id === id) return m; };
 
@@ -167,7 +178,7 @@
       const sk = GR.skills[sid], s = GR.state.skills[sid], t = GR.trackOf(sk.track), i = t.skills.indexOf(sid);
       if (!s || !s.n) {
         const prev = i === 0 || (GR.state.skills[t.skills[i - 1]] || {}).n > 0;
-        if (prev) out.push({ sid, score: 0.52 - i * 0.004, why: i === 0 ? "Start of the track" : "Next lesson in sequence", kind: "new" });
+        if (prev) out.push({ sid, score: 0.52 - i * 0.004 + (sk.track === "fnd" ? 0.01 : 0), why: i === 0 ? "Start of the track" : "Next lesson in sequence", kind: "new" });
         return;
       }
       const m = GR.mastery(sid), days = (now - s.t) / 864e5, tr = GR.trend(sid), ra = GR.recentAcc(sid), why = [];

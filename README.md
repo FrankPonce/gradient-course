@@ -10,7 +10,7 @@
 ![Backend](https://img.shields.io/badge/backend-none%20·%20localStorage-d8d2c4?style=for-the-badge&labelColor=0c0b0b)
 ![Dependencies](https://img.shields.io/badge/dependencies-0-a8191f?style=for-the-badge&labelColor=0c0b0b)
 
-[**Overview**](#-overview) · [**Features**](#-features) · [**Tracks**](#-the-six-tracks) · [**Mastery engine**](#-how-mastery-works) · [**Design**](#-design) · [**Architecture**](#%EF%B8%8F-architecture) · [**Quickstart**](#-quickstart) · [**Adding content**](#%EF%B8%8F-adding-content) · [**Repo map**](#%EF%B8%8F-repository-map)
+[**▶ Play it live**](http://frankponce.me/gradient-course/) · [**Overview**](#-overview) · [**Features**](#-features) · [**Game layer**](#-the-game-layer) · [**Tracks**](#-the-nine-tracks) · [**Mastery engine**](#-how-mastery-works) · [**Design**](#-design) · [**Architecture**](#%EF%B8%8F-architecture) · [**Quickstart**](#-quickstart) · [**Adding content**](#%EF%B8%8F-adding-content) · [**Repo map**](#%EF%B8%8F-repository-map)
 
 </div>
 
@@ -18,7 +18,7 @@
 
 ## 🎯 Overview
 
-GRADIENT is a **self-contained, adaptive course** for interview prep and upskilling across machine learning, generative AI, agentic AI and automation, statistics, analytics and software engineering. Every answer updates a per-skill ability estimate, and the course steers you to whatever needs work next: lesson, practice set, targeted drill or full mock test.
+GRADIENT is a **self-contained, adaptive course** for interview prep and upskilling across machine learning, generative AI, agentic AI, ML system design, statistics, analytics, software engineering and investing, with a gentle Foundations track to start from. It's also a game: XP, levels with increasingly unhinged career titles, coins, streaks, daily quests, a shop with cursed pets, and a fake stock exchange for your coins. Every answer updates a per-skill ability estimate, and the course steers you to whatever needs work next: lesson, practice set, targeted drill or full mock test.
 
 > *Got Rejected Again. Decided I'm (an) Ex-larper Now. Training.* The name is the plan.
 
@@ -46,28 +46,50 @@ GRADIENT is a **self-contained, adaptive course** for interview prep and upskill
 
 | Area | What it does |
 |---|---|
-| 📚 **Curriculum** | 6 tracks → 24 modules → topics → **73 lessons**, each teaching exactly one skill, with key takeaways and links to related skills |
-| ❓ **Question bank** | **~485 hand-written questions** with explanations, plus **92 parametric generators** that produce new numbers on every draw, so you can't memorize the answer key |
-| 🧩 **Cases** | **55 multi-part cases** (293 linked questions) built around a shared table, code listing, chart, trace or diagram · 20 regenerate their data on every draw · each part can credit a different skill |
+| 📚 **Curriculum** | 9 tracks → 35 modules → topics → **114 lessons**, each teaching exactly one skill, with key takeaways and links to related skills |
+| ❓ **Question bank** | **~730 hand-written questions** with explanations, plus **119 parametric generators** that produce new numbers on every draw, so you can't memorize the answer key |
+| 🧩 **Cases** | **66 multi-part cases** (342 linked questions) built around a shared table, code listing, chart, trace or diagram · 27 regenerate their data on every draw · each part can credit a different skill |
 | 🎯 **Practice modes** | Per-skill practice · 20-question module quizzes · targeted drills on your weakest skills · a 30-question placement diagnostic that seeds your skill map on day one |
-| ⏱️ **Mock tests** | 3 one-hour tests per track + 4 cross-track mixes (including an AI-engineer mix) · timed, no feedback until submit · scored on a difficulty-weighted **200–800** scale · full review with explanations |
+| ⏱️ **Mock tests** | 3 one-hour tests per track + 4 cross-track mixes (including an AI-engineer mix) · 31 tests in all · timed, no feedback until submit · scored on a difficulty-weighted **200–800** scale · full review with explanations |
 | 📈 **Analytics** | Mastery per skill, module and track · score history · strengths and weaknesses · improving and slipping skills · a full skill map |
-| 🔬 **Interactive lab** | **18 hands-on diagrams**: agent reliability and cost, gradient descent, polynomial fit, regression, ROC thresholds, k-means, neural nets, self-attention, temperature, CLT, Bayes, A/B power, SQL joins, funnels, sorting, binary search, BFS/DFS, Big-O |
-| 💻 **Coding** | **21 problems** runnable in the browser in **Python or JavaScript** against test cases · hints, approach and solutions · submissions feed the same skill mastery as quizzes |
+| 🔬 **Interactive lab** | **19 hands-on diagrams**: compounding and fees, agent reliability and cost, gradient descent, polynomial fit, regression, ROC thresholds, k-means, neural nets, self-attention, temperature, CLT, Bayes, A/B power, SQL joins, funnels, sorting, binary search, BFS/DFS, Big-O |
+| 💻 **Coding** | **36 problems** runnable in the browser: 26 in **Python or JavaScript** against test cases, plus **10 SQL problems** run in real SQLite against two datasets each · hints, approach and solutions · submissions feed the same skill mastery as quizzes |
 | 🌒 **Themes** | Gothic dark mode by default, a parchment light mode one click away · choice is remembered · every chart and diagram follows the theme |
 | 💾 **Your data** | Progress lives in your browser's localStorage · export and import it as JSON from the Progress page · one-click reset |
 
 ---
 
-## 🧭 The six tracks
+## 🎮 The game layer
+
+Good content is still boring if nothing happens when you get it right. So things happen.
+
+| | |
+|---|---|
+| ⭐ **XP and levels** | Every answer earns XP (harder questions more, wrong answers a pity 2). Combos multiply it. Lessons, solved problems and finished sessions pay out too |
+| 🪦 **Career titles** | Each level unlocks a title, from *"Your resume is a cry for help"* and *"Google won't even look at your resume"* (level 2) through *"You might actually pass the 1st interview. Good luck on the 2nd round tho."* (level 10) to *"You ARE the interview loop"* (level 30) |
+| 🔥 **Combos and streaks** | Consecutive correct answers build a combo (up to +100% XP). Practicing on consecutive days builds a streak that pays coins daily |
+| 📜 **Daily quests** | Three random quests a day ("hit an 8-answer combo", "practice in 2 tracks", "solve a SQL problem"), +25 coins each and +60 for clearing all three |
+| 🏆 **Achievements** | 26 of them, from *First blood* to *Night owl* and *Character development* (get 50 answers wrong; it's called learning) |
+| 🪙 **Coins and the shop** | Spend coins on animated companions that live in the corner and heckle you (Void the cat, Nyx the bat, Boo-lean the ghost, Overfit the raven, Null the skull), power-ups (50/50, double XP, streak freeze), accent colors and a cursor ember trail |
+| 📈 **Coin exchange** | Invest your coins in five made-up assets (from the Gradient Index Fund to MeowCoin) with prices that tick hourly, a 1% fee and real P/L. It's the practice ground for the Investing track |
+| ✨ **Juice** | Floating XP, confetti, a full-screen level-up, toasts, pets that hop when you're right and sulk when you're wrong, drifting embers, optional sound effects. All motion respects `prefers-reduced-motion` |
+
+Everything lives in your browser's localStorage, alongside your progress, and comes along in the progress export.
+
+---
+
+## 🧭 The nine tracks
 
 | | Track | What it covers |
 |:---:|---|---|
+| ![FND](https://img.shields.io/badge/FND-6E7681?style=flat-square) | **Foundations** | The on-ramp: functions, exponents and logs, derivatives and gradients, vectors and matrices, averages and probability, Python essentials, NumPy, pandas, kinds of data, the life of a data project, how interviews work |
 | ![ML](https://img.shields.io/badge/ML-BE8A34?style=flat-square) | **Machine Learning** | The learning setup, bias/variance, gradient descent, regularization, linear and logistic regression, trees and ensembles, k-NN and SVMs, metrics, ROC/AUC, cross-validation and leakage, k-means, PCA |
 | ![AI](https://img.shields.io/badge/AI-C0232D?style=flat-square) | **Deep Learning & Generative AI** | Neurons and backprop, training deep nets, CNNs, RNNs/LSTMs, attention and transformers, tokens and embeddings, pretraining and sampling, prompting and RAG, tool use and agents, evals, serving and monitoring |
 | ![AG](https://img.shields.io/badge/AG-3A9A92?style=flat-square) | **Agentic AI & Automation** | Workflow vs agent patterns, the agent loop and stopping rules, tool design, MCP, context engineering, memory, agentic retrieval, multi-agent systems, workflow automation (triggers, retries, idempotency), coding and computer-use agents, agent evals (pass@k vs pass^k), prompt-injection defense, cost and reliability in production |
 | ![DS](https://img.shields.io/badge/DS-5878A6?style=flat-square) | **Data Science & Statistics** | Probability, Bayes, distributions, the CLT, confidence intervals, hypothesis tests, descriptive stats, cleaning and feature engineering, correlation vs causation, regression, time series |
 | ![BA](https://img.shields.io/badge/BA-8558A4?style=flat-square) | **Business & Data Analytics** | SQL, joins, window functions and CTEs, KPIs and funnels, cohorts and retention, unit economics, A/B test design and pitfalls, charts and dashboards, product sense, data modeling |
+| ![MSD](https://img.shields.io/badge/MSD-D9772B?style=flat-square) | **ML System Design** | Framing and metrics, labels and feedback loops, feature stores, batch and streaming pipelines, lakes and Parquet, retrieval and ranking, training pipelines, serving and p99 latency, drift monitoring, shadow/canary/A-B rollout, and full designs for a recommendation feed, fraud detection and search |
+| ![FIN](https://img.shields.io/badge/FIN-C2408C?style=flat-square) | **Investing & Trading** | Compounding, asset classes, risk and drawdowns, order books and spreads, valuation, bonds and duration, diversification, beta/alpha/Sharpe, fees and index funds, trading strategies, backtesting traps, options, position sizing and behavioral biases. Education, not financial advice |
 | ![SWE](https://img.shields.io/badge/SWE-64924A?style=flat-square) | **Software Engineering** | Big-O, arrays and hashing, binary search, sorting, linked lists/stacks/queues, trees and heaps, graphs, recursion and backtracking, DP, system design, databases, testing and APIs |
 
 ---
@@ -134,6 +156,9 @@ flowchart LR
 
 ## 🚀 Quickstart
 
+**Play it live: [frankponce.me/gradient-course](http://frankponce.me/gradient-course/)** (deployed from `main` with GitHub Pages; every push redeploys).
+
+Or run it locally.
 Any static file server works. With Python:
 
 ```bash
@@ -215,6 +240,10 @@ P(id, title, difficulty, skill, { desc, js, py, tests, hint, approach, sol })
 │   ├── bank-ml.js        # questions + generators, one file per track
 │   ├── bank-ai.js
 │   ├── bank-ag.js        # agentic AI & automation
+│   ├── track-fnd.js      # Foundations: lessons, questions and cases in one file
+│   ├── track-sd.js       # ML System Design
+│   ├── track-fin.js      # Investing & Trading
+│   ├── extras.js         # gap-filler lessons (boosting, imbalance, fine-tuning, causal inference, estimation), compounding diagram, more problems
 │   ├── bank-ds.js
 │   ├── bank-ba.js
 │   ├── bank-swe.js
@@ -225,7 +254,8 @@ P(id, title, difficulty, skill, { desc, js, py, tests, hint, approach, sol })
 │   ├── diagrams-a.js     # lab toolkit + ML/AI diagrams
 │   ├── diagrams-b.js     # stats, analytics and algorithm diagrams
 │   ├── diagrams-c.js     # agent reliability and cost
-│   ├── coding.js         # coding problems + JS (Worker) and Python (Pyodide) runners
+│   ├── coding.js         # coding + SQL problems; JS (Worker), Python (Pyodide) and SQL (sql.js) runners
+│   ├── game.js           # XP, levels, coins, quests, achievements, shop, pets, coin exchange, effects
 │   └── views.js          # router, dashboard, track, lesson, sessions, results, tests, progress, lab, coding
 ├── assets/
 │   └── banner.jpg
