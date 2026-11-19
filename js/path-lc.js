@@ -8,7 +8,7 @@
   const P = (title, skill, cards) => L(title, skill, cards, "problem");
   const V = (id, input, code) => ({ id, input, code });
 
-  GR.course("lc", {
+  const DEF = {
     title: "LeetCode, one step at a time", color: "var(--t-lc)",
     blurb: "From Big-O to dynamic programming in bite-sized lessons. Watch each idea animate, then solve classic interview problems block by block.",
     units: [
@@ -340,5 +340,144 @@
         ]),
       ]},
     ],
-  });
+  };
+
+  /* ---------- additions: concept animations, new exercise types, drills, and a Hard PR attempt per week ---------- */
+  const A = (anim, text, title) => ({ k: "learn", anim, text, title });
+  const RK = (prompt, items, why) => ({ k: "rank", prompt, items, why });
+  const M = (prompt, pairs, why) => ({ k: "match", prompt, pairs, why });
+  const BN = (prompt, bins, items, why) => ({ k: "bins", prompt, bins, items, why });
+  const BUG = (prompt, lines, bug, why) => ({ k: "bug", prompt, lines, bug, why });
+  const NUM = (prompt, answer, why, code, tol, unit) => ({ k: "num", prompt, answer, why, code, tol, unit });
+  const U = DEF.units, ins = (ui, li, at, ...cards) => U[ui].lessons[li].cards.splice(at, 0, ...cards), add = (ui, li, ...cards) => U[ui].lessons[li].cards.push(...cards);
+  DEF.units.forEach((u) => u.lessons.forEach((l) => { if (l.kind === "lesson") l.kind = "learn"; }));
+
+  // Week 1: Big-O
+  ins(0, 0, 1, A("constants", "<p>Why do we get to drop constants? Divide <code>3n + 5</code> by <code>n</code>: the ratio settles at 3, a fixed number. <code>n²</code> divided by <code>n</code> just keeps growing.</p>"));
+  ins(0, 0, 4, A("growth", "<p>Here are the six growth rates racing as <b>n</b> grows. The chart keeps rescaling, and the exponential one still escapes it.</p>"));
+  add(0, 0, RK("Rank these from slowest-growing to fastest-growing.", ["O(1)", "O(log n)", "O(n)", "O(n log n)", "O(n²)", "O(2ⁿ)"], "Constant, logarithmic, linear, linearithmic, quadratic, exponential."));
+  ins(0, 1, 1, A("nested", "<p>Same n, very different work. One loop touches n cells; a loop inside a loop fills an n × n grid.</p>"));
+  add(0, 1, M("Match each snippet to its complexity.", [["<code>for x in nums: total += x</code>", "O(n)"], ["<code>for i in a: for j in a: …</code>", "O(n²)"], ["<code>while n > 1: n //= 2</code>", "O(log n)"], ["<code>nums.sort()</code>", "O(n log n)"]], "One pass, nested passes, halving, sorting."));
+  ins(0, 2, 1, A("halving", "<p>Algorithms that throw away half the input each step finish in <b>log₂ n</b> steps. That's why binary search is so fast.</p>"));
+  add(0, 2, NUM("Halving each time, how many steps take 1,024 items down to 1?", 10, "2¹⁰ = 1,024, so log₂ 1,024 = 10."),
+    BN("Sort these Python operations by cost.", ["O(1) on average", "O(n)"], [["<code>d[key]</code>", 0], ["<code>x in a_set</code>", 0], ["<code>nums.append(x)</code>", 0], ["<code>x in a_list</code>", 1], ["<code>sum(nums)</code>", 1], ["<code>nums.index(x)</code>", 1]], "Hashing and appends are constant; anything that scans a list is linear."));
+  // Week 2: hash maps
+  ins(1, 0, 1, A("hashing", "<p>A list makes you check items one by one. A hash map runs the key through a hash function and jumps straight to its bucket.</p>"));
+  add(1, 1, M("Match the tool to the job.", [["Have I seen this before?", "set"], ["How many times does each item appear?", "Counter"], ["Group items by a shared key", "defaultdict(list)"], ["Value → its index", "dict"]], "Sets for membership, counters for frequency, defaultdict for grouping, dicts for lookups."));
+  // Week 6: binary search
+  add(5, 1, BUG("This search sometimes never finishes. Tap the buggy line.", ["def search(a, target):", "    lo, hi = 0, len(a) - 1", "    while lo <= hi:", "        mid = (lo + hi) // 2", "        if a[mid] == target:", "            return mid", "        if a[mid] < target:", "            lo = mid", "        else:", "            hi = mid - 1", "    return -1"], 7, "mid is already known to be too small, so it must be excluded: lo = mid + 1. With lo = mid, the range can stop shrinking."));
+  // Week 7: stacks
+  add(6, 0, BUG("This crashes on the input <code>\")(\"</code>. Which line?", ["def is_valid(s):", "    stack = []", "    for c in s:", "        if c in '([{':", "            stack.append(c)", "        elif stack.pop() != pairs[c]:", "            return False", "    return not stack"], 5, "Popping an empty list raises an error. Check <code>not stack</code> first."));
+  // Week 8: linked lists
+  add(7, 0, BUG("This reversal loops forever. Which line is wrong?", ["prev, cur = None, head", "while cur:", "    nxt = cur.next", "    cur.next = prev", "    prev = cur", "    cur = cur.next", "return prev"], 5, "cur.next was just pointed back at prev. Advance with the saved nxt."));
+  // Week 9: trees
+  add(8, 0, M("Match each traversal to its order.", [["Pre-order", "node, left, right"], ["In-order", "left, node, right"], ["Post-order", "left, right, node"], ["Level-order", "row by row, with a queue"]], "In-order on a BST gives sorted output."));
+  // Week 10: heaps
+  add(9, 0, NUM("A heap holds 1,000,000 items. About how many swaps can a single push need, at most?", 20, "One swap per level: log₂ 1,000,000 ≈ 20.", null, 1));
+  // Week 11: graphs
+  add(10, 0, M("Match the problem to the algorithm.", [["Fewest moves, every move costs 1", "BFS"], ["Cheapest route, positive prices", "Dijkstra"], ["Order tasks with prerequisites", "Topological sort"], ["Are a and b connected yet?", "Union-find"]], "Unit weights → BFS; weights → Dijkstra; dependencies → topo sort; dynamic connectivity → union-find."));
+  // Week 12: backtracking
+  add(11, 0, NUM("How many subsets does a set of 10 items have?", 1024, "2¹⁰ = 1,024."));
+  // Week 13: DP
+  add(12, 0, RK("Put the DP recipe in order.", ["Define the state in words", "Write the transition", "Set the base cases", "Fill in dependency order and read the answer"], "State, transition, base cases, order."), NUM("Ways to climb 6 stairs taking 1 or 2 steps?", 13, "1, 2, 3, 5, 8, 13."));
+  // Week 14: greedy
+  add(13, 1, BN("Greedy, or does it need DP?", ["Greedy works", "Needs DP"], [["Jump Game", 0], ["Merge intervals", 0], ["Maximum subarray (Kadane)", 0], ["Coin Change with coins 1, 3, 4", 1], ["Longest increasing subsequence", 1], ["Edit distance", 1]], "If a local choice can be proven safe, greedy; if choices interact, DP."));
+  // Week 15: interview day
+  add(14, 2, M("Match each STAR part to an example line.", [["Situation", "Our nightly report took 40 minutes."], ["Task", "I owned making it run before standup."], ["Action", "I added an index and cached the joins."], ["Result", "It now runs in 3 minutes."]], "Context, ownership, your action, a measured outcome."));
+
+  // a drill after each week's first lesson: fresh questions from the bank every time
+  const DRILL = [["lc.complexity", "lc.approach"], ["lc.hashing"], ["lc.twoptr"], ["lc.window"], ["lc.prefix"], ["lc.bsearch"], ["lc.stack"], ["lc.linked"], ["lc.trees", "lc.bst", "lc.trie"], ["lc.heap"], ["lc.graphs", "lc.graphadv"], ["lc.backtrack"], ["lc.dp1", "lc.dp2"], ["lc.greedy", "lc.intervals", "lc.bits"], ["lc.patterns", "lc.oa", "lc.live", "lc.behavioral"]];
+  DRILL.forEach((sk, ui) => U[ui].lessons.splice(1, 0, { title: `Drill: ${U[ui].title}`, skill: sk[0], kind: "drill", cards: GR.pathKit.drill(sk, 8) }));
+
+  // the Hard PR attempt of each week (classic problems, explained in our own words)
+  const PR = (ui, title, skill, cards) => U[ui].lessons.push({ title, skill, kind: "pr", cards });
+  PR(1, "Longest Consecutive Sequence", "lc.hashing", [
+    T("<p><b>Longest Consecutive Sequence.</b> In an unsorted array, find the length of the longest run of consecutive integers, in O(n).</p><p>[100, 4, 200, 1, 3, 2] → <b>4</b> (1, 2, 3, 4)</p>"),
+    Q("Sorting first would cost…", ["O(n log n): too slow for the O(n) requirement", "O(n)", "O(1)", "O(n²)"], "The point is to beat sorting."),
+    Q("Put every number in a set. Where should a count start?", ["Only at numbers whose predecessor (x − 1) isn't in the set", "At every number", "At the smallest number only", "At even numbers"], "Starting only at run beginnings keeps the total work linear."),
+    F("Fill it in.", "s = set(nums)\nbest = 0\nfor x in s:\n    if ___ not in s:\n        y = x\n        while ___ in s:\n            y += 1\n        best = max(best, y - x + 1)", ["x - 1", "y + 1"], ["x + 1", "y - 1"], "Begin a run only at its start, then walk forward."),
+    NUM("[9, 1, 4, 7, 3, -1, 0, 5, 8, -1, 6] → longest run length?", 7, "3, 4, 5, 6, 7, 8, 9."),
+  ]);
+  PR(2, "Trapping Rain Water", "lc.twoptr", [
+    T("<p><b>Trapping Rain Water.</b> Bars of the given heights stand side by side. How much rain gets trapped between them?</p><p>[0, 1, 0, 2, 1, 0, 1, 3, 2, 1, 2, 1] → <b>6</b></p>"),
+    Q("Water above bar i equals…", ["min(tallest bar to its left, tallest to its right) − height[i]", "max(tallest left, tallest right) − height[i]", "height[i] − the shorter neighbor", "the next taller bar's height"], "Water rises to the lower of the two walls around it."),
+    NUM("Heights [3, 0, 2, 0, 4]. Total trapped water?", 7, "3 + 1 + 3: each gap fills to min(3, 4) = 3."),
+    T("<p>Two pointers make it O(n) with O(1) space. Track the tallest bar seen from each side. Whichever side has the <b>smaller</b> max is the one whose water level you already know, so process that side and move inward.</p>"),
+    F("Complete the two-pointer version.", "l, r = 0, len(h) - 1\nlmax = rmax = water = 0\nwhile l < r:\n    if h[l] < h[r]:\n        lmax = max(lmax, h[l])\n        water += ___ - h[l]\n        l += 1\n    else:\n        rmax = max(rmax, h[r])\n        water += rmax - h[r]\n        ___\nreturn water", ["lmax", "r -= 1"], ["rmax", "l += 1", "h[r]"], "Each side fills up to its own running max."),
+    Q("Complexity?", ["O(n) time, O(1) space", "O(n²) time", "O(n log n) time", "O(n) time, O(n) space only"], "One pass, a few variables."),
+  ]);
+  PR(3, "Minimum Window Substring", "lc.window", [
+    T("<p><b>Minimum Window Substring.</b> Find the shortest substring of s that contains every character of t (with repeats).</p><p>s = \"ADOBECODEBANC\", t = \"ABC\" → <b>\"BANC\"</b></p>"),
+    Q("Which pattern?", ["A variable sliding window: find the shortest valid window", "Binary search", "Backtracking", "A heap"], "Contiguous, shortest, with a validity rule."),
+    RK("Put the window's moves in order.", ["Expand right until the window contains all of t", "Record the window if it's the shortest so far", "Shrink from the left while it stays valid", "Repeat until right reaches the end"], "Grow until valid, then squeeze."),
+    F("Fill in the shrink loop.", "while missing ___ 0:\n    if r - l + 1 < best_len:\n        best_len, best_l = r - l + 1, l\n    need[s[l]] += 1\n    if need[s[l]] > 0:\n        missing ___ 1\n    l += 1", ["==", "+="], ["!=", "-="], "Shrink while nothing is missing; dropping a needed char makes one missing."),
+    Q("Complexity?", ["O(|s| + |t|)", "O(|s|²)", "O(|s| · |t|)", "O(2ⁿ)"], "Each index enters and leaves the window once."),
+  ]);
+  PR(5, "Split Array Largest Sum", "lc.bsearch", [
+    T("<p><b>Split Array Largest Sum.</b> Split nums into k contiguous parts so the <b>largest part sum is as small as possible</b>.</p><p>[7, 2, 5, 10, 8], k = 2 → <b>18</b> ([7, 2, 5] and [10, 8])</p>"),
+    Q("This is binary search on the answer. Search the cap between…", ["max(nums) and sum(nums)", "0 and len(nums)", "1 and k", "min(nums) and max(nums)"], "No part can be smaller than the biggest number; one part holds the total."),
+    NUM("Cap = 15 on [7, 2, 5, 10, 8]. Packing greedily left to right, how many parts?", 3, "[7, 2, 5] = 14, then [10], then [8]: 10 + 8 would exceed 15."),
+    F("Binary search the smallest workable cap.", "lo, hi = max(nums), sum(nums)\nwhile lo < hi:\n    mid = (lo + hi) // 2\n    if parts_needed(mid) <= k:\n        hi = ___\n    else:\n        lo = ___\nreturn lo", ["mid", "mid + 1"], ["mid - 1", "lo"], "Feasible caps keep mid; infeasible ones are excluded."),
+    Q("Complexity?", ["O(n · log(sum))", "O(n²)", "O(2ⁿ)", "O(k)"], "A linear feasibility check per binary-search step."),
+  ]);
+  PR(6, "Largest Rectangle in Histogram", "lc.stack", [
+    T("<p><b>Largest Rectangle in Histogram.</b> Find the largest rectangle that fits under the bars.</p><p>[2, 1, 5, 6, 2, 3] → <b>10</b> (height 5, width 2)</p>"),
+    Q("If bar i is the shortest bar in the rectangle, the rectangle stretches…", ["Out to the nearest shorter bar on each side", "Across the whole array", "Only over bar i", "To the tallest bar"], "Anything shorter would cap the height."),
+    NUM("In [2, 1, 5, 6, 2, 3], what area does the height-5 bar give as the shortest bar?", 10, "It spans the 5 and the 6: width 2 × height 5."),
+    F("Pop bars when a shorter one arrives.", "stack, best = [], 0\nfor i, h in enumerate(heights + [0]):\n    while stack and heights[stack[-1]] ___ h:\n        top = stack.pop()\n        width = i if not stack else i - stack[-1] - 1\n        best = max(best, heights[top] * width)\n    stack.append(i)", [">"], ["<", "=="], "A shorter bar ends every taller bar's rectangle."),
+    Q("Complexity?", ["O(n)", "O(n²)", "O(n log n)", "O(log n)"], "Each index is pushed and popped once."),
+  ]);
+  PR(7, "Merge K Sorted Lists", "lc.heap", [
+    T("<p><b>Merge K Sorted Lists.</b> Merge k sorted linked lists (N nodes in total) into one sorted list.</p>"),
+    Q("Merging them one by one into a growing result costs about…", ["O(k · N)", "O(N log k)", "O(N)", "O(k)"], "Each merge re-walks the growing result."),
+    O("Order the heap solution.", ["h = [(node.val, i, node) for i, node in enumerate(lists) if node]", "heapq.heapify(h)", "dummy = tail = ListNode()", "while h:", "    val, i, node = heapq.heappop(h)", "    tail.next = node; tail = node", "    if node.next: heapq.heappush(h, (node.next.val, i, node.next))", "return dummy.next"], "One candidate per list in the heap; always take the smallest."),
+    Q("Why keep i in the heap tuples?", ["It breaks ties so Python never compares two nodes", "It sorts the lists", "It saves memory", "It's the answer's index"], "Equal values would otherwise compare ListNode objects and crash."),
+    Q("Complexity?", ["O(N log k)", "O(N log N)", "O(k log N)", "O(N k)"], "N pops and pushes on a heap of size k."),
+  ]);
+  PR(8, "Binary Tree Maximum Path Sum", "lc.trees", [
+    T("<p><b>Binary Tree Maximum Path Sum.</b> A path can start and end at any nodes. Find the largest sum of values along any path.</p><p>Tree [-10, 9, 20, null, null, 15, 7] → <b>42</b> (15 → 20 → 7)</p>"),
+    Q("What should the recursive function return to its parent?", ["The best sum of a path going down one side from this node", "The best path anywhere in the subtree", "The subtree's total", "The node's depth"], "A parent can extend only one branch."),
+    Q("What do you compare against the global best at each node?", ["node.val + left gain + right gain", "node.val alone", "The left gain only", "The tree's height"], "That's the path that bends at this node."),
+    F("Complete the gain function.", "def gain(node):\n    if not node:\n        return 0\n    l = max(gain(node.left), ___)\n    r = max(gain(node.right), 0)\n    best[0] = max(best[0], node.val + l + r)\n    return node.val + ___(l, r)", ["0", "max"], ["1", "min", "node.val"], "Ignore negative branches; return the better one."),
+  ]);
+  PR(9, "Find Median from Data Stream", "lc.heap", [
+    T("<p><b>Find Median from Data Stream.</b> Numbers arrive one at a time; at any moment report the median.</p>"),
+    Q("The standard design uses…", ["A max-heap for the lower half and a min-heap for the upper half", "A sorted list re-sorted on every insert", "One min-heap", "A stack"], "The two tops sit right at the middle."),
+    BN("After 5, 15, 1, 3 and 8 arrive, which heap holds what?", ["Lower half (max-heap)", "Upper half (min-heap)"], [["1", 0], ["3", 0], ["5", 0], ["8", 1], ["15", 1]], "Lower half 1, 3, 5; upper half 8, 15; the lower half may hold one extra."),
+    NUM("What's the median now?", 5, "The top of the larger (lower) heap."),
+    Q("Costs?", ["addNum O(log n), findMedian O(1)", "Both O(n)", "Both O(1)", "addNum O(1), findMedian O(n log n)"], "Heap pushes are logarithmic; the median is a peek."),
+  ]);
+  PR(10, "Word Ladder", "lc.graphs", [
+    T("<p><b>Word Ladder.</b> Change one letter at a time, each step a real word from the list, from beginWord to endWord. How many words in the shortest sequence?</p><p>hit → hot → dot → dog → cog: <b>5</b></p>"),
+    Q("Which search finds the shortest sequence?", ["BFS: every step costs the same", "DFS", "Dijkstra with weights", "Backtracking over all sequences"], "Unweighted shortest path."),
+    Q("How do you find a word's neighbors quickly?", ["Try each position with each letter a–z and check a set", "Compare against every word in the list", "Sort the list", "Use a heap"], "L × 26 lookups per word instead of scanning the whole list."),
+    NUM("hit → hot → dot → dog → cog: how many words is that?", 5, "Count the words, not the steps."),
+    Q("A common speed-up is…", ["Searching from both ends at once (bidirectional BFS)", "Using DFS instead", "Sorting the word list", "Removing the end word"], "Two small frontiers meet long before one big one finishes."),
+  ]);
+  PR(11, "N-Queens", "lc.backtrack", [
+    T("<p><b>N-Queens.</b> Place n queens on an n × n board so none attack each other (same row, column or diagonal). Count the solutions. For n = 4 there are <b>2</b>.</p>"),
+    Q("Placing one queen per row, what must you track to check attacks in O(1)?", ["Used columns, r − c diagonals and r + c anti-diagonals", "Every queen's position, checked pairwise", "Only the columns", "The board as a string"], "Each diagonal has a constant r − c or r + c."),
+    F("Fill in the backtracking.", "def place(r):\n    if r == n:\n        count[0] += 1\n        return\n    for c in range(n):\n        if c in cols or r - c in d1 or ___ in d2:\n            continue\n        cols.add(c); d1.add(r - c); d2.add(r + c)\n        place(r + 1)\n        cols.remove(c); d1.remove(r - c); d2.___(r + c)", ["r + c", "remove"], ["c - r", "add"], "Check the anti-diagonal; undo every choice."),
+    NUM("How many solutions does 4-queens have?", 2, "Two mirror-image placements."),
+  ]);
+  PR(12, "Edit Distance", "lc.dp2", [
+    T("<p><b>Edit Distance.</b> The fewest inserts, deletes and replacements to turn one word into another.</p><p>\"horse\" → \"ros\": <b>3</b></p>"),
+    Q("dp[i][0] (turning the first i letters into an empty string) is…", ["i deletions", "0", "1", "j"], "Delete every letter."),
+    F("The transition.", "if a[i-1] == b[j-1]:\n    dp[i][j] = ___\nelse:\n    dp[i][j] = 1 + min(dp[i-1][j], dp[i][j-1], dp[i-1][j-1])", ["dp[i-1][j-1]"], ["dp[i][j-1]", "0"], "Matching letters cost nothing: take the diagonal."),
+    NUM("Edit distance from \"kitten\" to \"sitting\"?", 3, "k→s, e→i, insert g."),
+    Q("Complexity for words of length m and n?", ["O(m · n)", "O(m + n)", "O(2ⁿ)", "O(n log n)"], "One table cell each."),
+  ]);
+  PR(13, "Candy", "lc.greedy", [
+    T("<p><b>Candy.</b> Children stand in a line with ratings. Each gets at least one candy, and a child rated higher than a neighbor gets more than that neighbor. Minimum total?</p><p>[1, 0, 2] → <b>5</b> (2, 1, 2)</p>"),
+    Q("The classic solution makes…", ["Two passes: left-to-right, then right-to-left, keeping the max", "One pass", "A sort by rating", "A DP over all distributions"], "Each pass enforces one neighbor rule."),
+    F("Fill in both passes.", "c = [1] * n\nfor i in range(1, n):\n    if r[i] > r[i - 1]:\n        c[i] = ___\nfor i in range(n - 2, -1, -1):\n    if r[i] > r[i + 1]:\n        c[i] = ___(c[i], c[i + 1] + 1)", ["c[i - 1] + 1", "max"], ["c[i + 1] + 1", "min"], "Left pass handles left neighbors; right pass keeps both rules."),
+    NUM("Ratings [1, 2, 2]. Minimum total?", 4, "1, 2, 1: equal neighbors don't need more."),
+  ]);
+  // the rest of the track's lessons and its case studies, so the program covers everything
+  const LS = (ui, sid, at) => { const l = GR.skills[sid].lesson, node = { title: l.title, skill: sid, kind: "learn", cards: GR.pathKit.lessonSession(sid), n: GR.pathKit.chunks(l.body).length + 4 }; if (at === undefined) U[ui].lessons.push(node); else U[ui].lessons.splice(at, 0, node); };
+  LS(0, "lc.approach", 0); LS(8, "lc.trie"); LS(13, "lc.bits"); LS(14, "lc.studyplan"); LS(14, "lc.offer");
+  const CASE = { "Debug this sliding window": 3, "Why does this binary search hang?": 5, "Top K Frequent, three ways": 9, "Can you finish all the courses?": 10, "From brute force to DP": 12, "A HackerRank-style problem": 14, "Name that pattern": 14 };
+  GR.sets.filter((st) => CASE[st.title] !== undefined).forEach((st) => { const ui = CASE[st.title], i = U[ui].lessons.findIndex((l) => l.kind === "pr"); const node = { title: st.title, skill: st.skill, kind: "problem", cards: GR.pathKit.caseCards(st) }; if (i < 0) U[ui].lessons.push(node); else U[ui].lessons.splice(i, 0, node); });
+  DEF.testPool = (u, rng) => { const sk = DRILL[u.i] || []; return GR.pathKit.drill(sk, 4)(rng); };
+  GR.course("lc", DEF);
 })();

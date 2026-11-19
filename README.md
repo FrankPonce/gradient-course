@@ -10,7 +10,7 @@
 ![Backend](https://img.shields.io/badge/backend-none%20·%20localStorage-d8d2c4?style=for-the-badge&labelColor=0c0b0b)
 ![Dependencies](https://img.shields.io/badge/dependencies-0-a8191f?style=for-the-badge&labelColor=0c0b0b)
 
-[**▶ Play it live**](https://frankponce.me/gradient-course/) · [**Overview**](#-overview) · [**Features**](#-features) · [**LeetCode path**](#-the-leetcode-path) · [**LeetCode hub**](#-the-leetcode-hub) · [**Game layer**](#-the-game-layer) · [**Tracks**](#-the-ten-tracks) · [**Mastery engine**](#-how-mastery-works) · [**Design**](#-design) · [**Architecture**](#%EF%B8%8F-architecture) · [**Quickstart**](#-quickstart) · [**Adding content**](#%EF%B8%8F-adding-content) · [**Repo map**](#%EF%B8%8F-repository-map)
+[**▶ Play it live**](https://frankponce.me/gradient-course/) · [**Overview**](#-overview) · [**Features**](#-features) · [**Training programs**](#%EF%B8%8F-training-programs) · [**LeetCode hub**](#-the-leetcode-hub) · [**Game layer**](#-the-game-layer) · [**Tracks**](#-the-ten-tracks) · [**Mastery engine**](#-how-mastery-works) · [**Design**](#-design) · [**Architecture**](#%EF%B8%8F-architecture) · [**Quickstart**](#-quickstart) · [**Adding content**](#%EF%B8%8F-adding-content) · [**Repo map**](#%EF%B8%8F-repository-map)
 
 </div>
 
@@ -59,18 +59,19 @@ GRADIENT is a **self-contained, adaptive course** for interview prep and upskill
 
 ---
 
-## 🦉 The LeetCode path
+## 🏋️ Training programs
 
-The north star for GRADIENT is Duolingo: small, satisfying steps you want to keep taking. The coding-interview course is built that way at `#/path/lc`.
+Every track is now a **training program** you work through one session at a time (`#/path/<track>`, e.g. [`#/path/lc`](https://frankponce.me/gradient-course/#/path/lc)). The mechanics take their cue from habit-forming language apps (small steps, streaks, a daily goal), but the look is GRADIENT's own: a gym training log crossed with speedrun splits.
 
 | | |
 |---|---|
-| 🛤️ **One path** | 15 units (Big-O → hash maps → two pointers → sliding window → prefix sums → binary search → stacks → linked lists → trees → heaps → graphs → backtracking → DP → greedy and intervals → interview day), 52 lessons, a review and a treasure chest per unit. Each step unlocks the next |
-| 🧩 **Tap, don't type** | Lessons are 4 to 7 cards: concept cards with **auto-playing animations**, then multiple choice, "what does this code do", **fill the blank by tapping code chips**, and **put the lines in order** |
-| 📚 **Classic problems inside** | Two Sum, 3Sum, Container With Most Water, Valid Parentheses, Daily Temperatures, Koko Eating Bananas, Number of Islands, Course Schedule, Coin Change and more are taught in the path, in our own words, block by block |
-| ❤️ **Duolingo mechanics** | 5 hearts per lesson (refill with coins), mistakes come back at the end, in-lesson combos, a "Lesson complete" screen with XP and accuracy, a daily XP goal, chests, and a Continue card on the dashboard. Level-up celebrations wait until the lesson ends |
+| 🗓️ **Weeks and sessions** | Each module is a **week**. Its sessions are **Learn** (the written lesson cut into short cards, with its diagram and quick checks), **Drill** (the topic's whole question bank plus fresh generator numbers), **Problem**, **PR attempt** (a multi-part case, or a Hard LeetCode problem) and a closing **Test**. Finished sessions get a stamp: Done, PR, Gold or the test score |
+| 📚 **Covers everything** | All 10 tracks are programs built from the existing lessons, questions, generators and cases, so nothing was lost: **370 sessions**. Coding Interviews alone has 15 weeks and 106 sessions, from Big-O to 12 Hard PR attempts (Trapping Rain Water, Minimum Window Substring, Merge K Lists, Median from Data Stream, Word Ladder, N-Queens, Edit Distance and more) |
+| ⏱️ **Splits** | Every session records your time and accuracy. Replay it faster with the same or better accuracy and it turns into a **gold split**. The program header shows sessions done, today's XP, streak, gold splits and your sum of best |
+| 🧩 **Nine exercise types** | Learn cards with **auto-playing concept animations** (Big-O growth curves, dropped constants, nested-loop grid, halving, hashing), multiple choice, **fill the blank** with code chips, **put lines in order**, **drag to rank**, **match pairs**, **sort into bins**, **tap the buggy line** and **numeric answers**. Every drag also works by tapping, and ranking works from the keyboard |
+| ❤️ **Stakes** | 5 lives per session (refill with coins), missed cards come back at the end, combos, a session log with time, accuracy, XP and coins, and level-up celebrations that wait until the session ends |
 
-The written lessons, visualizers you can drive yourself, and the problem tracker below stay available as each unit's Guidebook and as a reference shelf.
+The written lessons, visualizers you can drive yourself and the problem tracker stay available as each week's Guidebook and as a reference shelf.
 
 ## 🧩 The LeetCode hub
 
@@ -291,8 +292,10 @@ P(id, title, difficulty, skill, { desc, js, py, tests, hint, approach, sol })
 │   ├── coding-lc.js      # 30 interview problems, including HackerRank-style I/O
 │   ├── game.js           # XP, levels, coins, quests, achievements, shop, pets, coin exchange, effects
 │   ├── lc-hub.js         # LeetCode hub: pattern map, tracker, cheat sheets, study plan, mock interview
-│   ├── path.js           # Duolingo-style course engine: path, lesson player (tap exercises), hearts, chests
-│   ├── path-lc.js        # the LeetCode path: 15 units, 52 lessons
+│   ├── anim.js           # auto-playing concept animations (Big-O growth, constants, nested loops, halving, hashing)
+│   ├── path.js           # program engine: training sheet, splits, session player (9 exercise types), lives
+│   ├── path-lc.js        # Coding Interviews program: 15 weeks, 106 sessions, 12 Hard PR attempts
+│   ├── courses-auto.js   # builds a program for every other track from its lessons, banks and cases
 │   └── views.js          # router, dashboard, track, lesson, sessions, results, tests, progress, lab, coding
 ├── assets/
 │   └── banner.jpg

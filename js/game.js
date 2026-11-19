@@ -182,7 +182,7 @@
     trade(d) { trade(d.id, +d.q); },
     fifty() { const g = G(), s = GR.session; if (!s || s.type === "mock" || s.picks[s.i] !== null) return; if (!(g.inv.fifty > 0)) return toast(`No 50/50s left. They're 30 coins in the <a href="#/shop">shop</a>.`); const q = s.items[s.i], wrong = q.options.map((_, i) => i).filter((i) => i !== q.answer); g.inv.fifty--; s.cut = s.cut || {}; s.cut[s.i] = GR.rng(Date.now()).shuffle(wrong).slice(0, 2); sfx("coin"); changed(); GR.game.rerender(); },
   };
-  const afterRoute = (a, b) => { applyLook(); if (!a) { const h = $(".hero"); if (h) h.insertAdjacentHTML("afterend", questCard()); }
+  const afterRoute = (a, b) => { applyLook(); document.querySelectorAll(".lvlup").forEach((m) => m.remove()); if (!a) { const h = $(".hero"); if (h) h.insertAdjacentHTML("afterend", questCard()); }
     if (a === "results") { const r = GR.state.sessions.find((x) => x.id === b), h = $(".thead"); if (r && r.loot && h) h.insertAdjacentHTML("afterend", `<div class="loot"><span class="cap">Session loot</span><b>+${fmt(r.loot.xp)} XP</b><b>${coinI} +${fmt(r.loot.coins)}</b>${r.loot.best >= 3 ? `<b>${r.loot.best}× best combo</b>` : ""}</div>`); } };
   const init = () => { applyLook(); mountPet(); embers(); quests(); };
 

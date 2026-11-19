@@ -1,3 +1,10 @@
 .claude/
 node_modules/
 .DS_Store
+
+# impeccable scratch
+.impeccable/hook.cache.json
+.impeccable/questions/
+.impeccable/sketches/
+.impeccable/mocks/
+.impeccable/review/

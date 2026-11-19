@@ -1,26 +1,33 @@
-/* Gradient — Duolingo-style courses: a winding path of small lessons that unlock in order.
-   GR.course(id, {title, blurb, color, units:[{title, sub, guide, lessons:[{title, skill, kind, cards}]}]})
+/* Gradient — courses as training programs with a speedrun log.
+   A course is weeks (units) of sessions (lessons). Finished sessions are stamped; each keeps a split
+   (best time, accuracy) that turns gold when a replay beats it.
+   GR.course(id, {title, short, blurb, color, units:[{title, sub, guide, lessons:[{title, skill, kind, cards}]}], testPool})
+     lesson.kind: learn | drill | problem | pr | test      lesson.cards: an array, or (rng) => array
    Card kinds:
-     learn {text, viz:{id, input, code}}      read or watch, then Continue
-     mcq   {prompt, opts:[correct, ...], code, why}
-     fill  {prompt, code with ___ blanks, answers:[...], extra:[...], why}
-     ord   {prompt, lines:[in order], extra:[...], why}   tap the lines into the right order
-   Routes: #/path/<course>   #/learn/<course>/<nodeId> */
+     learn {text, title, viz:{id,input,code}, anim, try}   mcq {prompt, opts:[correct,...], code, stim, why}
+     fill  {prompt, code with ___, answers, extra, why}    ord {prompt, lines, extra, why}
+     rank  {prompt, items:[in correct order], why}          match {prompt, pairs:[[a,b],...], why}
+     bins  {prompt, bins:[names], items:[[text,binIndex]], why}
+     bug   {prompt, lines:[...], bug: lineIndex, why}       num {prompt, answer, tol, unit, code, why}
+   Routes: #/path/<course>  #/learn/<course>/<nodeId> */
 (function () {
   const E = GR.esc, $ = (s, r = document) => r.querySelector(s);
   const C = (GR.courses = GR.courses || {});
-  const HEARTS = 5, REFILL = 20, GOAL = 50;
-  const shuffle = (a) => GR.rng(Date.now() ^ (Math.random() * 1e9)).shuffle(a);
-  const praise = ["Nice!", "Correct!", "Exactly.", "Clean.", "You got it.", "Sharp.", "Yes!"];
+  const LIVES = 5, REFILL = 20, GOAL = 50;
+  const rngNow = () => GR.rng((Date.now() ^ (Math.random() * 1e9)) >>> 0);
+  const shuffle = (a) => rngNow().shuffle(a);
   const pickOne = (a) => a[Math.floor(Math.random() * a.length)];
+  const PRAISE = ["Clean rep.", "Correct.", "That's the one.", "Nailed it.", "Good lift.", "Right."];
+  const KIND = { learn: "Learn", drill: "Drill", problem: "Problem", pr: "PR attempt", test: "Test" };
+  const KIND_EX = { mcq: "Multiple choice", fill: "Fill the blanks", ord: "Order the lines", rank: "Rank", match: "Match pairs", bins: "Sort into groups", bug: "Find the bug", num: "Work it out", learn: "Watch and read" };
+  const fmtT = (s) => (s === undefined || s === null ? "–" : `${Math.floor(s / 60)}:${String(Math.round(s % 60)).padStart(2, "0")}`);
 
+  const slug = (t) => String(t).toLowerCase().replace(/<[^>]+>/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 40);
   GR.course = (id, def) => {
-    const nodes = [];
-    def.units.forEach((u, ui) => {
-      u.i = ui;
-      u.lessons.forEach((l, li) => { l.id = l.id || `${id}-${ui + 1}-${li + 1}`; l.unit = ui; l.kind = l.kind || "lesson"; nodes.push(l); });
-      nodes.push({ id: `${id}-${ui + 1}-review`, title: `Unit ${ui + 1} review`, kind: "review", unit: ui, skill: u.lessons[0].skill });
-      nodes.push({ id: `${id}-${ui + 1}-chest`, title: "Treasure", kind: "chest", unit: ui });
+    const nodes = [], used = new Set();
+    def.units.forEach((u, ui) => { u.i = ui;
+      u.lessons.forEach((l) => { if (!l.id) { const base = `${id}-${slug(u.title)}-${slug(l.title)}`; let k = base, n = 2; while (used.has(k)) k = `${base}-${n++}`; l.id = k; } used.add(l.id); l.unit = ui; l.kind = l.kind || "learn"; nodes.push(l); });
+      if (!u.noTest) nodes.push({ id: `${id}-${slug(u.title)}-test`, title: `Week ${ui + 1} test`, kind: "test", unit: ui, skill: u.lessons[0] && u.lessons[0].skill, auto: true });
     });
     C[id] = Object.assign(def, { id, nodes });
   };
@@ -30,148 +37,257 @@
   const todayXp = () => (GR.game.state().days || {})[today()] || 0;
   GR.pathNext = (cid) => { const c = C[cid]; if (!c) return null; const k = curIdx(c); return k < c.nodes.length ? { node: c.nodes[k], unit: c.units[c.nodes[k].unit], k, total: c.nodes.length } : null; };
 
-  /* ---------- the path ---------- */
-  const ICON = { lesson: `<svg viewBox="0 0 24 24"><path d="M12 1.5L14 10l8.5 2-8.5 2-2 8.5-2-8.5L1.5 12 10 10z" fill="currentColor"/></svg>`, problem: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M8 7l-5 5 5 5M16 7l5 5-5 5M13.5 4l-3 16"/></svg>`, review: `<svg viewBox="0 0 24 24"><path d="M3 18h18l-1.5-10-5 4L12 5l-2.5 7-5-4z" fill="currentColor"/></svg>`, chest: `<svg viewBox="0 0 24 24"><path d="M3 10a5 5 0 015-5h8a5 5 0 015 5v2H3z" fill="currentColor" opacity=".75"/><rect x="3" y="12" width="18" height="8" rx="1.5" fill="currentColor"/><rect x="10.5" y="10.5" width="3" height="4" rx="1" fill="var(--bg)"/></svg>`, done: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>`, lock: `<svg viewBox="0 0 24 24"><rect x="5" y="10.5" width="14" height="10" rx="2" fill="currentColor"/><path d="M8 10.5V8a4 4 0 018 0v2.5" fill="none" stroke="currentColor" stroke-width="2.4"/></svg>` };
-  const WAVE = [0, 44, 72, 44, 0, -44, -72, -44];
+  /* ---------- building a session's cards ---------- */
+  const resolve = (node, rng) => (typeof node.cards === "function" ? node.cards(rng) : (node.cards || []).slice());
+  const cardsFor = (c, node) => {
+    const rng = rngNow();
+    if (node.kind !== "test") return resolve(node, rng);
+    const ls = c.units[node.unit].lessons, pool = ls.flatMap((l) => resolve(l, rng).filter((x) => x.k !== "learn").map((x) => Object.assign({ skill: l.skill }, x)));
+    const extra = c.testPool ? c.testPool(c.units[node.unit], rng) : [];
+    return rng.shuffle(pool.concat(extra)).slice(0, 10);
+  };
+  GR.pathCards = (cid, id) => { const c = C[cid], n = c && c.nodes.find((x) => x.id === id); return n ? cardsFor(c, n) : []; };
+
+  /* ---------- icons (authored, one stroke weight) ---------- */
+  const I = {
+    bolt: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M13 2L4 14h7l-1 8 9-12h-7z"/></svg>`,
+    clock: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5M9 2h6"/></svg>`,
+    lock: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 018 0v3"/></svg>`,
+    x: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>`,
+    book: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M4 5a2 2 0 012-2h13v16H6a2 2 0 00-2 2zM4 5v16M8 7h7"/></svg>`,
+    grip: `<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="6" r="1.6"/><circle cx="15" cy="6" r="1.6"/><circle cx="9" cy="12" r="1.6"/><circle cx="15" cy="12" r="1.6"/><circle cx="9" cy="18" r="1.6"/><circle cx="15" cy="18" r="1.6"/></svg>`,
+    up: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 15l6-6 6 6"/></svg>`,
+    down: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>`,
+  };
+
+  /* ---------- the program sheet ---------- */
   let justDone = null;
+  const est = (node) => { const n = node.n || (Array.isArray(node.cards) ? node.cards.length : node.kind === "test" ? 10 : 8); return Math.max(2, Math.round(n * 0.6)); };
+  const breakdown = (node) => { if (!Array.isArray(node.cards) && node.kind === "learn") return [["Read and watch", Math.max(1, (node.n || 7) - 4)], ["Key points", 1], ["Quick checks", 3]]; if (!Array.isArray(node.cards) && node.kind === "pr") return [["Case questions on one scenario", "4–5"]]; const cards = Array.isArray(node.cards) ? node.cards : null; if (!cards) return node.kind === "test" ? [["Mixed exercises from the week", 10]] : [["Fresh exercises each time", 8]]; const m = {}; cards.forEach((x) => (m[x.k] = (m[x.k] || 0) + 1)); return Object.entries(m).map(([k, v]) => [KIND_EX[k] || k, v]); };
   const pathView = (main, cid) => {
     const c = C[cid]; if (!c) { main.innerHTML = `<p class="muted">No such course.</p>`; return; }
-    const d = ps(cid).done, k = curIdx(c), g = GR.game.state(), tx = todayXp(), doneUnits = c.units.filter((u) => c.nodes.filter((n) => n.unit === u.i).every((n) => d[n.id])).length;
-    let n = 0;
-    main.innerHTML = `<div class="pth" style="--pc:${c.color}">
-      <header class="pth-head"><div><div class="cap">Course</div><h1>${E(c.title)}</h1><p class="lead">${E(c.blurb)}</p></div>
-        <div class="pth-stats"><div class="pth-goal" title="Daily goal: ${GOAL} XP"><svg viewBox="0 0 44 44"><circle cx="22" cy="22" r="18" fill="none" stroke="var(--rule)" stroke-width="5"/><circle cx="22" cy="22" r="18" fill="none" stroke="var(--or)" stroke-width="5" stroke-linecap="round" stroke-dasharray="${(Math.min(1, tx / GOAL) * 113.1).toFixed(1)} 113.1" transform="rotate(-90 22 22)"/></svg><span><b>${Math.min(tx, 999)}</b>/${GOAL} XP today</span></div>
-          <div><b>${g.streak || 0}</b><span>day streak</span></div><div><b>${doneUnits}/${c.units.length}</b><span>units</span></div><div><b>${Math.min(k, c.nodes.length)}/${c.nodes.length}</b><span>steps</span></div></div></header>
-      ${c.units.map((u) => { const un = c.nodes.filter((x) => x.unit === u.i), ud = un.filter((x) => d[x.id]).length, locked = c.nodes.indexOf(un[0]) > k;
-        return `<section class="unit ${locked ? "locked" : ""}" style="--uc:${u.color || c.color}"><div class="unit-b"><div><span class="cap">Unit ${u.i + 1} · ${ud}/${un.length}</span><h2>${E(u.title)}</h2><p>${E(u.sub)}</p></div>${u.guide ? `<a class="btn sm" href="#/lesson/${u.guide}" title="The full written lesson for this unit">Guidebook</a>` : ""}</div>
-          <div class="pnodes">${un.map((x) => { const i = c.nodes.indexOf(x), st = d[x.id] ? "done" : i === k ? "cur" : "locked", off = WAVE[n++ % WAVE.length];
-            return `<div class="pn-w" style="--x:${off}px">${st === "cur" ? `<div class="pn-tip">${x.kind === "chest" ? "OPEN" : "START"}<small>${E(x.title)}</small></div>` : ""}<button class="pn ${st} k-${x.kind} ${justDone === x.id ? "just" : ""}" data-pa="go" data-c="${cid}" data-id="${x.id}" title="${E(x.title)}" aria-label="${E(x.title)}${st === "locked" ? " (locked)" : ""}">${st === "done" && x.kind !== "chest" ? ICON.done : st === "locked" && x.kind !== "chest" ? ICON.lock : ICON[x.kind] || ICON.lesson}</button><span class="pn-l">${E(x.title)}</span></div>`; }).join("")}</div></section>`; }).join("")}
-      <div class="pth-end">${k >= c.nodes.length ? `<h2>Course complete.</h2><p class="muted">Every unit, every review. Revisit any lesson for practice XP.</p>` : `<p class="muted">More units unlock as you go.</p>`}</div></div>`;
-    const cur = main.querySelector(".pn.cur"); if (cur) setTimeout(() => cur.scrollIntoView({ behavior: justDone ? "smooth" : "auto", block: "center" }), justDone ? 450 : 30);
+    GR.state.pathLast = cid;
+    const d = ps(cid).done, k = curIdx(c), g = GR.game.state(), tx = todayXp(), golds = c.nodes.filter((n) => d[n.id] && d[n.id].gold).length, sob = c.nodes.reduce((a, n) => a + ((d[n.id] && d[n.id].best) || 0), 0), nx = k < c.nodes.length ? c.nodes[k] : null;
+    const weekBar = c.units.map((u) => { const un = c.nodes.filter((x) => x.unit === u.i), f = un.filter((x) => d[x.id]).length; return `<i title="Week ${u.i + 1}: ${E(u.title)} (${f}/${un.length})"><b style="width:${(f / un.length) * 100}%"></b></i>`; }).join("");
+    const cell = (x) => { const i = c.nodes.indexOf(x), r = d[x.id], st = r ? "done" : i === k ? "now" : "locked";
+      return `<button class="ses ${st} k-${x.kind} ${justDone === x.id ? "just" : ""} ${r && r.gold ? "gold" : ""}" data-pa="go" data-c="${cid}" data-id="${x.id}" ${st === "locked" ? `aria-disabled="true"` : ""}>
+        <span class="ses-k">${KIND[x.kind] || "Session"}</span><span class="ses-t">${E(x.title)}</span>
+        ${r ? `<span class="ses-stamp">${r.gold ? "Gold" : x.kind === "pr" ? "PR" : x.kind === "test" ? Math.round((r.bestAcc ?? r.acc) * 100) + "%" : "Done"}</span><span class="ses-split num"><span>${fmtT(r.best)}</span><span>${Math.round((r.bestAcc ?? r.acc) * 100)}%</span></span>` : st === "now" ? `<span class="ses-now">Up next</span>` : `<span class="ses-lock">${I.lock}</span>`}</button>`; };
+    const panel = nx ? (() => { const u = c.units[nx.unit], r = d[nx.id]; return `<aside class="today"><h2>${E(nx.title)}</h2><p class="today-sub">${KIND[nx.kind]} · Week ${nx.unit + 1}, ${E(u.title)} · about ${est(nx)} min</p>
+        <ul class="today-ex">${breakdown(nx).map(([l, n]) => `<li><span>${E(l)}</span><span class="num">×${n}</span></li>`).join("")}</ul>
+        ${nx.kind === "pr" ? `<p class="today-note">${I.bolt}<span>The hardest problem of the week. Take your time: there's no clock to race on a first attempt.</span></p>` : ""}
+        <button class="btn primary today-go" data-pa="go" data-c="${cid}" data-id="${nx.id}">${r ? "Run it again" : k ? "Begin session" : "Start the program"}</button>
+        ${u.guide ? `<a class="today-guide" href="#/lesson/${u.guide}">${I.book}<span>Read this week's guidebook</span></a>` : ""}</aside>`; })() : `<aside class="today"><h2>Program complete</h2><p class="today-sub">Every session is stamped. Replay any of them to chase gold splits.</p></aside>`;
+    main.innerHTML = `<div class="prg" style="--pc:${c.color}">
+      <header class="prg-head"><h1>${E(c.title)}</h1><p class="lead">${E(c.blurb)}</p>
+        <div class="prg-bar" aria-label="Progress by week">${weekBar}</div>
+        <dl class="prg-stats"><div><dt>Sessions</dt><dd class="num">${Math.min(k, c.nodes.length)}<small>/${c.nodes.length}</small></dd></div><div><dt>Today</dt><dd class="num">${Math.min(tx, 999)}<small>/${GOAL} XP</small></dd></div><div><dt>Streak</dt><dd class="num">${g.streak || 0}<small> days</small></dd></div><div><dt>Gold splits</dt><dd class="num gold">${golds}</dd></div><div><dt>Sum of best</dt><dd class="num">${sob ? fmtT(sob) : "–"}</dd></div></dl></header>
+      <div class="prg-body"><div class="sheet">${c.units.map((u) => { const un = c.nodes.filter((x) => x.unit === u.i), f = un.filter((x) => d[x.id]).length;
+          return `<section class="wk ${f === un.length ? "wk-done" : ""}"><div class="wk-l"><span class="wk-n">Week ${u.i + 1}</span><h2>${E(u.title)}</h2><p>${E(u.sub || "")}</p><span class="wk-c num">${f}/${un.length}</span></div><div class="wk-s">${un.map(cell).join("")}</div></section>`; }).join("")}</div>${panel}</div></div>`;
+    const now = main.querySelector(".ses.now"); if (now) setTimeout(() => now.scrollIntoView({ behavior: justDone ? "smooth" : "auto", block: "center" }), justDone ? 500 : 30);
     justDone = null;
   };
 
-  /* ---------- lesson runner ---------- */
+  /* ---------- the session runner ---------- */
   let R = null;
-  const cardsFor = (c, node) => {
-    if (node.kind !== "review") return node.cards.slice();
-    const pool = c.units[node.unit].lessons.flatMap((l) => l.cards.filter((x) => x.k !== "learn").map((x) => Object.assign({ skill: l.skill }, x)));
-    return shuffle(pool).slice(0, 8);
-  };
   const start = (cid, id) => {
     const c = C[cid], node = c && c.nodes.find((x) => x.id === id); if (!node) return (location.hash = "#/path/" + cid);
-    const cards = cardsFor(c, node);
-    R = { c, node, items: cards.map((card, i) => ({ card, i })), pos: 0, total: cards.length, cleared: new Set(), hearts: HEARTS, graded: 0, firstOk: 0, missed: new Set(), start: Date.now(), streak: 0, st: null };
-    GR.game.sessionStart(); render();
+    const cards = cardsFor(c, node), prev = ps(cid).done[id];
+    if (!cards.length) { GR.game.toast("This session has no exercises yet."); return (location.hash = "#/path/" + cid); }
+    R = { c, node, items: cards.map((card, i) => ({ card, i })), pos: 0, total: cards.length, cleared: new Set(), lives: LIVES, graded: 0, firstOk: 0, missed: new Set(), start: Date.now(), streak: 0, st: null, prev };
+    GR.state.pathLast = cid; GR.game.sessionStart(); render();
   };
   const host = () => $("#main");
-  const bar = () => `<div class="ln-top"><button class="ln-x" data-pa="quit" aria-label="Quit lesson">✕</button><div class="ln-bar"><i style="width:${(R.cleared.size / R.total) * 100}%"></i>${R.streak >= 3 ? `<span class="ln-hot">${R.streak} in a row</span>` : ""}</div>${hearts()}</div>`;
-  const hearts = () => `<span class="ln-hearts ${R.hearts <= 1 ? "low" : ""}"><svg viewBox="0 0 24 24"><path d="M12 21s-8-5.2-8-11a4.5 4.5 0 018-2.8A4.5 4.5 0 0120 10c0 5.8-8 11-8 11z" fill="currentColor"/></svg>${R.hearts}</span>`;
+  const pips = () => `<span class="lives" aria-label="${R.lives} lives left">${Array.from({ length: LIVES }, (_, i) => `<i class="${i < R.lives ? "on" : ""}"></i>`).join("")}</span>`;
+  const top = () => `<div class="ln-top"><button class="ln-x" data-pa="quit" aria-label="End session">${I.x}</button><div class="ln-rule" aria-label="Progress">${Array.from({ length: R.total }, (_, i) => `<i class="${R.cleared.has(i) ? "on" : ""}"></i>`).join("")}</div>${R.prev && R.prev.best ? `<span class="ln-pb num" title="Your best split">${I.clock}${fmtT(R.prev.best)}</span>` : ""}${pips()}</div>`;
   const codeHtml = (code) => `<pre class="ln-code">${E(code)}</pre>`;
   const render = () => {
-    const it = R.items[R.pos], c = it.card, h = host(); R.st = { sel: null, slots: [], seq: [], answered: false };
-    const kick = { learn: R.node.kind === "problem" && it.i === 0 ? "The problem" : "New concept", mcq: c.code ? "Read the code" : "Choose the answer", fill: "Fill in the blanks", ord: "Put the lines in order" }[c.k];
-    let body = "";
-    if (c.k === "learn") body = `<div class="ln-learn">${c.title ? `<h2>${E(c.title)}</h2>` : ""}<div class="ln-text">${c.text}</div>${c.viz ? `<div class="ln-viz"></div>` : ""}${c.code ? codeHtml(c.code) : ""}</div>`;
+    const it = R.items[R.pos], c = it.card, h = host(); R.st = { sel: null, slots: [], seq: [], answered: false, miss: 0 };
+    let body = "", needCheck = true;
+    if (c.k === "learn") { needCheck = false;
+      body = `${c.title ? `<h2 class="ln-h">${E(c.title)}</h2>` : ""}<div class="ln-text">${c.text}</div>${c.anim ? `<div class="ln-viz" data-anim="${c.anim}"></div>` : ""}${c.viz ? `<div class="ln-viz"></div>` : ""}${c.code ? codeHtml(c.code) : ""}${c.try ? `<details class="ln-try"><summary>Try it yourself (optional)</summary><div class="ln-tryhost"></div></details>` : ""}`; }
     else if (c.k === "mcq") { const order = shuffle(c.opts.map((_, i) => i)); R.st.order = order;
-      body = `<div class="ln-prompt">${c.prompt}</div>${c.code ? codeHtml(c.code) : ""}<div class="ln-opts ${c.opts.some((o) => o.length > 34) ? "long" : ""}">${order.map((oi, j) => `<button class="ln-opt" data-pa="sel" data-j="${j}"><kbd>${j + 1}</kbd><span>${c.opts[oi]}</span></button>`).join("")}</div>`; }
-    else if (c.k === "fill") { const chips = shuffle(c.answers.concat(c.extra || []).map((t, i) => ({ t, i }))); R.st.chips = chips; R.st.slots = c.answers.map(() => null);
-      let si = 0; const code = E(c.code).replace(/___/g, () => `<button class="slot" data-pa="unslot" data-s="${si}" data-n="${si++}"></button>`);
-      body = `<div class="ln-prompt">${c.prompt}</div><pre class="ln-code fill">${code}</pre><div class="ln-chips">${chips.map((ch, j) => `<button class="chip-b" data-pa="chip" data-j="${j}">${E(ch.t)}</button>`).join("")}</div>`; }
+      body = `<p class="ln-prompt">${c.prompt}</p>${c.stim ? `<div class="ln-stim">${c.stim}</div>` : ""}${c.code ? codeHtml(c.code) : ""}<div class="ln-opts ${c.opts.some((o) => String(o).length > 34) ? "long" : ""}" role="radiogroup">${order.map((oi, j) => `<button class="ln-opt" role="radio" aria-checked="false" data-pa="sel" data-j="${j}"><span class="key">${j + 1}</span><span>${c.opts[oi]}</span></button>`).join("")}</div>`; }
+    else if (c.k === "fill") { const chips = shuffle(c.answers.concat(c.extra || []).map((t, i) => ({ t, i }))); R.st.chips = chips; R.st.slots = c.answers.map(() => null); let si = 0;
+      body = `<p class="ln-prompt">${c.prompt}</p><pre class="ln-code fill">${E(c.code).replace(/___/g, () => { const n = si++; return `<button class="slot" data-pa="unslot" data-s="${n}" aria-label="Blank ${n + 1}"></button>`; })}</pre><div class="ln-chips">${chips.map((ch, j) => `<button class="tok" data-pa="chip" data-j="${j}">${E(ch.t)}</button>`).join("")}</div>`; }
     else if (c.k === "ord") { const bank = shuffle(c.lines.concat(c.extra || []).map((t, i) => ({ t, i }))); R.st.bank = bank;
-      body = `<div class="ln-prompt">${c.prompt}</div><div class="ord-ans" aria-label="Your answer"></div><div class="ord-bank">${bank.map((b, j) => `<button class="ord-line" data-pa="pick" data-j="${j}">${E(b.t)}</button>`).join("")}</div>`; }
-    h.innerHTML = `<div class="ln" data-kind="${c.k}">${bar()}<div class="ln-body" key="${R.pos}"><div class="cap ln-kick">${kick}</div>${body}</div>
-      <div class="ln-foot"><div class="ln-msg"></div><button class="btn primary ln-go" data-pa="go2" ${c.k === "learn" ? "" : "disabled"}>${c.k === "learn" ? "Continue" : "Check"}</button></div></div>`;
-    if (c.k === "learn" && c.viz) GR.vizPlay($(".ln-viz", h), c.viz.id, c.viz.input || {}, { code: !!c.viz.code });
-    if (c.k === "ord") drawOrd();
+      body = `<p class="ln-prompt">${c.prompt}</p><div class="ord-ans" data-drop="ans"></div><div class="ord-bank">${bank.map((b, j) => `<button class="tok line" data-pa="pick" data-drag="b" data-j="${j}">${E(b.t)}</button>`).join("")}</div>`; }
+    else if (c.k === "rank") { let o = shuffle(c.items.map((_, i) => i)); if (o.every((v, i) => v === i)) o = o.reverse(); R.st.seq = o; needCheck = false;
+      body = `<p class="ln-prompt">${c.prompt}</p><ol class="rank" aria-label="Drag, or use the arrow buttons, to reorder"></ol>`; }
+    else if (c.k === "match") { const L = shuffle(c.pairs.map((_, i) => i)), Rr = shuffle(c.pairs.map((_, i) => i)); R.st.L = L; R.st.R = Rr; R.st.done = new Set(); needCheck = false;
+      body = `<p class="ln-prompt">${c.prompt}</p><div class="match"><div class="match-col">${L.map((i) => `<button class="tok mt" data-pa="ml" data-drag="m" data-i="${i}">${c.pairs[i][0]}</button>`).join("")}</div><div class="match-col">${Rr.map((i) => `<button class="tok mt" data-pa="mr" data-drop="m" data-i="${i}">${c.pairs[i][1]}</button>`).join("")}</div></div>`; }
+    else if (c.k === "bins") { const its = shuffle(c.items.map((_, i) => i)); R.st.its = its; R.st.where = {};
+      body = `<p class="ln-prompt">${c.prompt}</p><div class="bins-pool" data-drop="pool"></div><div class="bins" style="--n:${c.bins.length}">${c.bins.map((b, j) => `<div class="bin" data-pa="bin" data-drop="bin" data-b="${j}"><span class="bin-h">${E(b)}</span><div class="bin-in"></div></div>`).join("")}</div>`; }
+    else if (c.k === "bug") { body = `<p class="ln-prompt">${c.prompt}</p><div class="bugcode" role="radiogroup">${c.lines.map((l, j) => `<button class="bugline" role="radio" aria-checked="false" data-pa="bsel" data-j="${j}"><span class="ln-no">${j + 1}</span><code>${E(l) || " "}</code></button>`).join("")}</div>`; }
+    else if (c.k === "num") { body = `<p class="ln-prompt">${c.prompt}</p>${c.code ? codeHtml(c.code) : ""}<label class="numin"><input type="text" inputmode="decimal" autocomplete="off" spellcheck="false" aria-label="Your answer" placeholder="Your answer">${c.unit ? `<span>${E(c.unit)}</span>` : ""}</label>`; }
+    const label = c.k === "learn" ? "Continue" : c.k === "match" ? "Match all pairs" : c.k === "rank" ? "Check order" : "Check";
+    h.innerHTML = `<div class="ln" data-kind="${c.k}">${top()}<div class="ln-body">${body}</div>
+      <div class="ln-foot"><div class="ln-verdict" aria-live="polite"></div><button class="btn primary ln-go" data-pa="go2" ${c.k === "learn" || c.k === "rank" ? "" : "disabled"}>${label}</button></div></div>`;
+    if (c.k === "learn") { if (c.viz) GR.vizPlay($(".ln-viz", h), c.viz.id, c.viz.input || {}, { code: !!c.viz.code }); if (c.anim) GR.anim($(".ln-viz", h), c.anim);
+      if (c.try) { const d = $(".ln-try", h); d.addEventListener("toggle", () => { const th = $(".ln-tryhost", h); if (d.open && !th.childElementCount && GR.diagrams[c.try]) GR.diagrams[c.try].mount(th); }); } }
+    if (c.k === "ord") drawOrd(); if (c.k === "rank") drawRank(); if (c.k === "bins") drawBins();
+    if (c.k === "num") { const inp = $(".numin input", h); inp.addEventListener("input", () => (go().disabled = !inp.value.trim())); setTimeout(() => inp.focus(), 60); }
     window.scrollTo(0, 0);
   };
+  const go = () => $(".ln-go", host());
   const drawOrd = () => { const c = R.items[R.pos].card, h = host();
-    $(".ord-ans", h).innerHTML = R.st.seq.length ? R.st.seq.map((j, k) => `<button class="ord-line in" data-pa="unpick" data-k="${k}">${E(R.st.bank[j].t)}</button>`).join("") : `<span class="muted">Tap the lines below in order.</span>`;
-    h.querySelectorAll(".ord-bank .ord-line").forEach((b) => (b.disabled = R.st.seq.includes(+b.dataset.j) || R.st.answered));
-    $(".ln-go", h).disabled = R.st.seq.length !== c.lines.length; };
+    $(".ord-ans", h).innerHTML = R.st.seq.length ? R.st.seq.map((j, k) => `<button class="tok line in" data-pa="unpick" data-k="${k}">${E(R.st.bank[j].t)}</button>`).join("") : `<span class="hint">Tap or drag the lines into order.</span>`;
+    h.querySelectorAll(".ord-bank .tok").forEach((b) => (b.disabled = R.st.seq.includes(+b.dataset.j) || R.st.answered)); go().disabled = R.st.seq.length !== c.lines.length; };
   const drawFill = () => { const h = host(); h.querySelectorAll(".slot").forEach((s, k) => { const j = R.st.slots[k]; s.textContent = j === null ? "" : R.st.chips[j].t; s.classList.toggle("on", j !== null); });
-    h.querySelectorAll(".chip-b").forEach((b) => (b.disabled = R.st.slots.includes(+b.dataset.j) || R.st.answered)); $(".ln-go", h).disabled = R.st.slots.includes(null); };
-  const grade = () => { const c = R.items[R.pos].card;
+    h.querySelectorAll(".ln-chips .tok").forEach((b) => (b.disabled = R.st.slots.includes(+b.dataset.j) || R.st.answered)); go().disabled = R.st.slots.includes(null); };
+  const drawRank = () => { const c = R.items[R.pos].card, h = host(), n = R.st.seq.length;
+    $(".rank", h).innerHTML = R.st.seq.map((i, pos) => `<li class="tok rk ${R.st.sel === pos ? "sel" : ""}" data-pa="rsel" data-drag="r" data-drop="r" data-pos="${pos}" tabindex="0"><span class="grip">${I.grip}</span><span class="rk-t">${c.items[i]}</span><span class="rk-b"><button class="rk-mv" data-pa="rup" data-pos="${pos}" aria-label="Move up" ${pos === 0 || R.st.answered ? "disabled" : ""}>${I.up}</button><button class="rk-mv" data-pa="rdn" data-pos="${pos}" aria-label="Move down" ${pos === n - 1 || R.st.answered ? "disabled" : ""}>${I.down}</button></span></li>`).join(""); };
+  const drawBins = () => { const c = R.items[R.pos].card, h = host(), chip = (i) => `<button class="tok bchip ${R.st.sel === i ? "sel" : ""}" data-pa="bpick" data-drag="c" data-i="${i}">${c.items[i][0]}</button>`;
+    $(".bins-pool", h).innerHTML = R.st.its.filter((i) => R.st.where[i] === undefined).map(chip).join("") || `<span class="hint">All sorted. Check when ready.</span>`;
+    h.querySelectorAll(".bin").forEach((b) => (b.querySelector(".bin-in").innerHTML = R.st.its.filter((i) => R.st.where[i] === +b.dataset.b).map(chip).join("")));
+    go().disabled = R.st.its.some((i) => R.st.where[i] === undefined); };
+  const grade = () => { const c = R.items[R.pos].card, h = host();
     if (c.k === "mcq") return R.st.order[R.st.sel] === 0;
     if (c.k === "fill") return R.st.slots.every((j, k) => R.st.chips[j].t === c.answers[k]);
     if (c.k === "ord") return R.st.seq.length === c.lines.length && R.st.seq.every((j, k) => R.st.bank[j].t === c.lines[k]);
+    if (c.k === "rank") return R.st.seq.every((v, i) => v === i);
+    if (c.k === "match") return R.st.miss === 0;
+    if (c.k === "bins") return c.items.every((it, i) => R.st.where[i] === it[1]);
+    if (c.k === "bug") return R.st.sel === c.bug;
+    if (c.k === "num") { const v = parseFloat(String($(".numin input", h).value).replace(/[, ]/g, "")); return Number.isFinite(v) && Math.abs(v - c.answer) <= (c.tol || 0); }
     return true; };
-  const answerText = (c) => c.k === "mcq" ? c.opts[0] : c.k === "fill" ? c.answers.map((a) => `<code>${E(a)}</code>`).join(" , ") : c.k === "ord" ? `<pre class="ln-code sm">${E(c.lines.join("\n"))}</pre>` : "";
+  const answerText = (c) => ({ mcq: () => c.opts[0], fill: () => c.answers.map((a) => `<code>${E(a)}</code>`).join(", "), ord: () => `<pre class="ln-code sm">${E(c.lines.join("\n"))}</pre>`, rank: () => c.items.join(" → "), match: () => "", bins: () => c.bins.map((b, j) => `<b>${E(b)}</b>: ${c.items.filter((it) => it[1] === j).map((it) => it[0]).join(", ")}`).join("<br>"), bug: () => `Line ${c.bug + 1}: <code>${E(c.lines[c.bug].trim())}</code>`, num: () => `<b>${c.answer.toLocaleString("en-US")}</b>${c.unit ? " " + E(c.unit) : ""}` }[c.k] || (() => ""))();
   const check = () => {
     const it = R.items[R.pos], c = it.card, ok = grade(), h = host(); R.st.answered = true;
-    const first = !R.missed.has(it.i) && !R.cleared.has(it.i); R.graded += first ? 1 : 0;
-    if (ok) { R.cleared.add(it.i); R.streak++; if (first) R.firstOk++; } else { R.missed.add(it.i); R.streak = 0; R.hearts--; R.items.push({ card: c, i: it.i }); }
+    const first = !R.missed.has(it.i) && !R.cleared.has(it.i); if (first) R.graded++;
+    if (ok) { R.cleared.add(it.i); R.streak++; if (first) R.firstOk++; } else { R.missed.add(it.i); R.streak = 0; R.lives--; R.items.push({ card: c, i: it.i }); }
     const sk = c.skill || R.node.skill; if (sk && GR.skills[sk]) { GR.record({ skill: sk, diff: c.d || 2, also: [], gen: true }, ok); GR.game.answer({ skill: sk, diff: c.d || 2 }, ok); } GR.save();
     if (c.k === "mcq") h.querySelectorAll(".ln-opt").forEach((b, j) => { b.disabled = true; if (R.st.order[j] === 0) b.classList.add("right"); else if (j === R.st.sel) b.classList.add("wrong"); });
     if (c.k === "fill") { drawFill(); h.querySelectorAll(".slot").forEach((s, k) => { s.disabled = true; s.classList.add(R.st.chips[R.st.slots[k]].t === c.answers[k] ? "right" : "wrong"); }); }
-    if (c.k === "ord") { drawOrd(); h.querySelectorAll(".ord-ans .ord-line").forEach((b, k) => { b.disabled = true; b.classList.add(R.st.bank[R.st.seq[k]].t === c.lines[k] ? "right" : "wrong"); }); }
+    if (c.k === "ord") { drawOrd(); h.querySelectorAll(".ord-ans .tok").forEach((b, k) => { b.disabled = true; b.classList.add(R.st.bank[R.st.seq[k]].t === c.lines[k] ? "right" : "wrong"); }); }
+    if (c.k === "rank") { drawRank(); h.querySelectorAll(".rank .rk").forEach((b, k) => b.classList.add(R.st.seq[k] === k ? "right" : "wrong")); }
+    if (c.k === "bins") h.querySelectorAll(".bin .tok").forEach((b) => { b.disabled = true; b.classList.add(R.st.where[+b.dataset.i] === c.items[+b.dataset.i][1] ? "right" : "wrong"); });
+    if (c.k === "bug") h.querySelectorAll(".bugline").forEach((b, j) => { b.disabled = true; if (j === c.bug) b.classList.add("right"); else if (j === R.st.sel) b.classList.add("wrong"); });
+    if (c.k === "num") { const inp = $(".numin input", h); inp.disabled = true; inp.parentElement.classList.add(ok ? "right" : "wrong"); }
     const foot = $(".ln-foot", h); foot.classList.add(ok ? "ok" : "bad");
-    $(".ln-msg", h).innerHTML = ok ? `<b>${pickOne(praise)}</b>${c.why ? `<span>${c.why}</span>` : ""}` : `<b>Correct answer:</b><div>${answerText(c)}</div>${c.why ? `<span>${c.why}</span>` : ""}`;
-    $(".ln-bar i", h).style.width = (R.cleared.size / R.total) * 100 + "%"; const hs = $(".ln-hearts", h); hs.outerHTML = hearts(); if (!ok) { const n = $(".ln-hearts", h); n.classList.add("hit"); }
-    const go = $(".ln-go", h); go.disabled = false; go.textContent = "Continue"; go.focus({ preventScroll: true });
+    $(".ln-verdict", h).innerHTML = `<span class="vstamp">${ok ? "Correct" : "Missed"}</span><div class="vtext">${ok ? `<b>${pickOne(PRAISE)}</b>` : c.k === "match" ? "<b>Mismatched pairs cost a life.</b>" : `<b>Answer:</b> ${answerText(c)}`}${c.why ? `<span>${c.why}</span>` : ""}</div>`;
+    $(".ln-top", h).outerHTML = top(); if (!ok) $(".lives", h).classList.add("hit");
+    const b = go(); b.disabled = false; b.textContent = "Continue"; b.focus({ preventScroll: true });
   };
   const next = () => {
-    if (R.hearts <= 0) return outOfHearts();
+    if (R.lives <= 0) return outOfLives();
     if (R.items[R.pos].card.k === "learn") R.cleared.add(R.items[R.pos].i);
     R.pos++; if (R.pos >= R.items.length) return finish(); render();
   };
-  const outOfHearts = () => { const g = GR.game.state();
-    host().innerHTML = `<div class="ln ln-end">${bar()}<div class="ln-res"><div class="ln-big bad">Out of hearts</div><p class="lead">Five mistakes in one lesson. Every one of them is coming back, so it's worth a refill, or start the lesson fresh.</p>
-      <div class="row ln-res-b"><button class="btn primary" data-pa="refill" ${g.coins < REFILL ? "disabled" : ""}>Refill hearts · ${REFILL} coins</button><button class="btn" data-pa="retry">Start over</button><button class="btn" data-pa="quit">Back to the path</button></div>${g.coins < REFILL ? `<p class="muted">You have ${g.coins} coins.</p>` : ""}</div></div>`; };
+  const outOfLives = () => { const g = GR.game.state();
+    host().innerHTML = `<div class="ln ln-end">${top()}<div class="log"><span class="log-stamp bad">Failed set</span><h2>Out of lives</h2><p class="lead">Five misses in one session. They're queued up again, so a refill lets you finish strong, or start the session fresh.</p>
+      <div class="row log-b"><button class="btn primary" data-pa="refill" ${g.coins < REFILL ? "disabled" : ""}>Refill lives · ${REFILL} coins</button><button class="btn" data-pa="retry">Start over</button><button class="btn" data-pa="quit">Back to the program</button></div>${g.coins < REFILL ? `<p class="muted">You have ${g.coins} coins.</p>` : ""}</div></div>`; };
   const finish = () => {
-    const c = R.c, node = R.node, d = ps(c.id).done, firstTime = !d[node.id], acc = R.graded ? R.firstOk / R.graded : 1, secs = Math.round((Date.now() - R.start) / 1000);
+    const c = R.c, node = R.node, d = ps(c.id).done, prev = d[node.id], acc = R.graded ? R.firstOk / R.graded : 1, secs = Math.max(1, Math.round((Date.now() - R.start) / 1000));
     const rec = { type: "lesson", total: R.graded, score: R.firstOk, scaled: null }; if (R.graded) GR.game.sessionEnd(rec);
-    const bonus = firstTime ? 10 : 3; GR.game.reward(bonus, firstTime ? 3 : 1, null);
-    d[node.id] = { ts: Date.now(), acc, secs }; justDone = firstTime ? node.id : null; GR.save();
-    const xp = ((rec.loot && rec.loot.xp) || 0) + bonus, coins = ((rec.loot && rec.loot.coins) || 0) + (firstTime ? 3 : 1), perfect = R.graded && R.firstOk === R.graded;
-    if (perfect || node.kind === "review") GR.game.confetti(120); else GR.game.confetti(60);
-    const nx = GR.pathNext(c.id);
-    host().innerHTML = `<div class="ln ln-end"><div class="ln-res"><div class="ln-big">${node.kind === "review" ? "Unit reviewed!" : perfect ? "Perfect lesson!" : "Lesson complete!"}</div><p class="lead">${E(node.title)}</p>
-      <div class="ln-stats"><div class="xp"><span>Total XP</span><b data-count="${xp}">0</b></div><div class="acc"><span>${perfect ? "Flawless" : "Accuracy"}</span><b>${Math.round(acc * 100)}%</b></div><div class="tm"><span>Time</span><b>${Math.floor(secs / 60)}:${String(secs % 60).padStart(2, "0")}</b></div><div class="co"><span>Coins</span><b>+${coins}</b></div></div>
-      <div class="row ln-res-b"><button class="btn primary" data-pa="topath">Continue</button>${nx && nx.node.kind !== "chest" ? `<button class="btn" data-pa="go" data-c="${c.id}" data-id="${nx.node.id}">Next: ${E(nx.node.title)}</button>` : ""}</div></div></div>`;
+    const isGold = !!prev && !!prev.best && secs < prev.best && acc >= (prev.bestAcc ?? prev.acc ?? 0) && acc > 0;
+    const bonus = !prev ? (node.kind === "pr" ? 30 : node.kind === "test" ? 20 : 10) : isGold ? 15 : 3, coinB = !prev ? (node.kind === "pr" ? 12 : node.kind === "test" ? 10 : 3) : isGold ? 6 : 1; GR.game.reward(bonus, coinB, null);
+    const best = prev && prev.best ? Math.min(prev.best, secs) : secs, bestAcc = Math.max(acc, prev ? prev.bestAcc ?? prev.acc ?? 0 : 0);
+    d[node.id] = { ts: Date.now(), acc, secs, best, bestAcc, gold: (prev && prev.gold) || isGold, runs: ((prev && prev.runs) || 0) + 1 }; justDone = !prev || isGold ? node.id : null; GR.save();
+    const xp = ((rec.loot && rec.loot.xp) || 0) + bonus, coins = ((rec.loot && rec.loot.coins) || 0) + coinB, perfect = R.graded && R.firstOk === R.graded;
+    if (isGold || (!prev && node.kind === "pr")) GR.game.confetti(140); else if (perfect) GR.game.confetti(60);
+    const nx = GR.pathNext(c.id), stamp = isGold ? "Gold split" : !prev && node.kind === "pr" ? "New PR" : !prev ? "Done" : "Logged";
+    host().innerHTML = `<div class="ln ln-end"><div class="log"><span class="log-stamp ${isGold || stamp === "New PR" ? "gold" : ""}">${stamp}</span><h2>${E(node.title)}</h2><p class="lead">${KIND[node.kind]} · Week ${node.unit + 1}${prev ? ` · run ${(prev.runs || 1) + 1}` : ""}</p>
+      <table class="log-t"><tr><th>Time</th><td class="num">${fmtT(secs)}${prev && prev.best ? ` <small class="${secs < prev.best ? "pos" : ""}">best ${fmtT(prev.best)}</small>` : ""}</td></tr><tr><th>Accuracy</th><td class="num">${Math.round(acc * 100)}%${perfect ? ` <small class="pos">flawless</small>` : ""}</td></tr><tr><th>XP</th><td class="num" data-count="${xp}">+0</td></tr><tr><th>Coins</th><td class="num">+${coins}</td></tr></table>
+      <div class="row log-b">${nx ? `<button class="btn primary" data-pa="go" data-c="${c.id}" data-id="${nx.node.id}">Next: ${E(nx.node.title)}</button>` : ""}<button class="btn ${nx ? "" : "primary"}" data-pa="topath">Back to the program</button></div></div></div>`;
     const el = $("[data-count]", host()); let v = 0; const step = () => { v = Math.min(xp, v + Math.max(1, Math.ceil(xp / 25))); el.textContent = "+" + v; if (v < xp) requestAnimationFrame(step); }; requestAnimationFrame(step);
-    R = null; setTimeout(() => GR.game.flushLevel(), 1400);
+    R = null; setTimeout(() => GR.game.flushLevel(), 1300);
   };
-  const openChest = (c, node) => { const d = ps(c.id).done; if (d[node.id]) return; const coins = 25 + 5 * node.unit; d[node.id] = { ts: Date.now() }; justDone = node.id; GR.save();
-    const ov = document.createElement("div"); ov.className = "chest-ov"; ov.innerHTML = `<div class="chest-in"><div class="chest-ic">${ICON.chest}</div><b>+${coins} coins</b><small>Unit ${node.unit + 1} cleared</small><button class="btn primary">Collect</button></div>`;
-    ov.addEventListener("click", () => { ov.remove(); pathView(host(), c.id); }); document.body.appendChild(ov); GR.game.reward(15, coins, null); GR.game.confetti(90); };
 
-  /* ---------- events ---------- */
+  /* ---------- match logic ---------- */
+  const tryMatch = (li, ri) => { const c = R.items[R.pos].card, h = host(), L = h.querySelector(`.mt[data-pa=ml][data-i="${li}"]`), Rb = h.querySelector(`.mt[data-pa=mr][data-i="${ri}"]`);
+    if (li === ri) { R.st.done.add(li); [L, Rb].forEach((b) => { b.classList.remove("sel"); b.classList.add("right"); b.disabled = true; }); R.st.sel = null; if (R.st.done.size === c.pairs.length) check(); }
+    else { R.st.miss++; [L, Rb].forEach((b) => { b.classList.add("wrong"); setTimeout(() => b.classList.remove("wrong", "sel"), 450); }); R.st.sel = null; } };
+
+  /* ---------- pointer drag with tap fallback ---------- */
+  let drag = null, suppress = false;
+  document.addEventListener("pointerdown", (e) => { if (!R || !R.st || R.st.answered) return; const src = e.target.closest("[data-drag]"); if (!src || src.disabled || e.target.closest(".rk-mv")) return;
+    drag = { src, x: e.clientX, y: e.clientY, ghost: null, id: e.pointerId }; });
+  document.addEventListener("pointermove", (e) => { if (!drag || e.pointerId !== drag.id) return;
+    if (!drag.ghost) { if (Math.hypot(e.clientX - drag.x, e.clientY - drag.y) < 8) return; const r = drag.src.getBoundingClientRect(); drag.ghost = drag.src.cloneNode(true); drag.ghost.classList.add("ghost"); Object.assign(drag.ghost.style, { width: r.width + "px", left: r.left + "px", top: r.top + "px" }); drag.dx = e.clientX - r.left; drag.dy = e.clientY - r.top; document.body.appendChild(drag.ghost); drag.src.classList.add("lifted"); }
+    drag.ghost.style.left = e.clientX - drag.dx + "px"; drag.ghost.style.top = e.clientY - drag.dy + "px";
+    document.querySelectorAll(".drop-hot").forEach((x) => x.classList.remove("drop-hot")); drag.ghost.style.visibility = "hidden"; const t = document.elementFromPoint(e.clientX, e.clientY); drag.ghost.style.visibility = ""; const dz = t && t.closest("[data-drop]"); if (dz) dz.classList.add("drop-hot"); e.preventDefault(); }, { passive: false });
+  document.addEventListener("pointerup", (e) => { if (!drag || e.pointerId !== drag.id) return; const d0 = drag; drag = null; if (!d0.ghost) return;
+    d0.ghost.style.visibility = "hidden"; const t = document.elementFromPoint(e.clientX, e.clientY); d0.ghost.remove(); d0.src.classList.remove("lifted"); document.querySelectorAll(".drop-hot").forEach((x) => x.classList.remove("drop-hot"));
+    suppress = true; setTimeout(() => (suppress = false), 60); const dz = t && t.closest("[data-drop]"); if (!dz || !R) return; const s = d0.src.dataset;
+    if (s.drag === "r" && dz.dataset.drop === "r") { const a = +s.pos, b = +dz.dataset.pos; const v = R.st.seq.splice(a, 1)[0]; R.st.seq.splice(b, 0, v); R.st.sel = null; drawRank(); }
+    else if (s.drag === "c" && dz.dataset.drop === "bin") { R.st.where[+s.i] = +dz.dataset.b; R.st.sel = null; drawBins(); }
+    else if (s.drag === "c" && dz.dataset.drop === "pool") { delete R.st.where[+s.i]; drawBins(); }
+    else if (s.drag === "m" && dz.dataset.drop === "m" && !dz.disabled) tryMatch(+s.i, +dz.dataset.i);
+    else if (s.drag === "b" && dz.dataset.drop === "ans") { R.st.seq.push(+s.j); drawOrd(); } });
+  document.addEventListener("pointercancel", () => { if (drag && drag.ghost) { drag.ghost.remove(); drag.src.classList.remove("lifted"); } drag = null; });
+
+  /* ---------- clicks ---------- */
   document.addEventListener("click", (e) => {
-    const b = e.target.closest("[data-pa]"); if (!b || b.disabled) return; const a = b.dataset.pa; e.preventDefault();
-    if (a === "go") { const c = C[b.dataset.c], node = c.nodes.find((x) => x.id === b.dataset.id), i = c.nodes.indexOf(node), k = curIdx(c);
-      if (i > k) { b.classList.remove("shake"); void b.offsetWidth; b.classList.add("shake"); GR.game.toast("Finish the steps before this one first."); return; }
-      if (node.kind === "chest") return openChest(c, node);
+    const b = e.target.closest("[data-pa]"); if (!b || b.disabled || suppress) return;
+    const a = b.dataset.pa;
+    if (a === "go") { e.preventDefault(); const c = C[b.dataset.c], node = c.nodes.find((x) => x.id === b.dataset.id), i = c.nodes.indexOf(node), k = curIdx(c);
+      if (i > k) { b.classList.remove("shake"); void b.offsetWidth; b.classList.add("shake"); GR.game.toast("Finish the sessions before this one first."); return; }
       location.hash = `#/learn/${c.id}/${node.id}`; return; }
-    if (!R) { if (a === "topath" || a === "quit") location.hash = "#/path/" + (b.dataset.c || "lc"); return; }
-    if (a === "quit") { if (R.cleared.size && !confirm("Quit this lesson? Progress in it won't be saved.")) return; const cid = R.c.id; R = null; location.hash = "#/path/" + cid; return; }
+    if (!R) { if (a === "topath" || a === "quit") { e.preventDefault(); location.hash = "#/path/" + (GR.state.pathLast || "lc"); } return; }
+    e.preventDefault();
+    if (a === "quit") { if (R.cleared.size && !confirm("End this session? Progress in it won't be saved.")) return; const cid = R.c.id; R = null; location.hash = "#/path/" + cid; return; }
     if (a === "topath") { location.hash = "#/path/" + R.c.id; return; }
     if (a === "retry") return start(R.c.id, R.node.id);
-    if (a === "refill") { const g = GR.game.state(); if (g.coins < REFILL) return; g.coins -= REFILL; R.hearts = HEARTS; GR.save(); GR.game.toast(`Hearts refilled. <em>−${REFILL} coins</em>`, "gold"); R.pos++; if (R.pos >= R.items.length) return finish(); return render(); }
-    if (a === "go2") { if (R.st.answered || R.items[R.pos].card.k === "learn") return next(); return check(); }
+    if (a === "refill") { const g = GR.game.state(); if (g.coins < REFILL) return; g.coins -= REFILL; R.lives = LIVES; GR.save(); GR.game.toast(`Lives refilled. <em>−${REFILL} coins</em>`, "gold"); R.pos++; if (R.pos >= R.items.length) return finish(); return render(); }
+    if (a === "go2") { const c = R.items[R.pos].card; if (R.st.answered || c.k === "learn") return next(); return check(); }
     if (R.st.answered) return;
-    if (a === "sel") { R.st.sel = +b.dataset.j; host().querySelectorAll(".ln-opt").forEach((x, j) => x.classList.toggle("sel", j === R.st.sel)); $(".ln-go", host()).disabled = false; }
+    const h = host();
+    if (a === "sel") { R.st.sel = +b.dataset.j; h.querySelectorAll(".ln-opt").forEach((x, j) => { x.classList.toggle("sel", j === R.st.sel); x.setAttribute("aria-checked", j === R.st.sel); }); go().disabled = false; }
+    if (a === "bsel") { R.st.sel = +b.dataset.j; h.querySelectorAll(".bugline").forEach((x, j) => { x.classList.toggle("sel", j === R.st.sel); x.setAttribute("aria-checked", j === R.st.sel); }); go().disabled = false; }
     if (a === "chip") { const k = R.st.slots.indexOf(null); if (k < 0) return; R.st.slots[k] = +b.dataset.j; drawFill(); }
     if (a === "unslot") { R.st.slots[+b.dataset.s] = null; drawFill(); }
     if (a === "pick") { R.st.seq.push(+b.dataset.j); drawOrd(); }
     if (a === "unpick") { R.st.seq.splice(+b.dataset.k, 1); drawOrd(); }
+    if (a === "rup" || a === "rdn") { e.stopPropagation(); const p = +b.dataset.pos, q = a === "rup" ? p - 1 : p + 1; [R.st.seq[p], R.st.seq[q]] = [R.st.seq[q], R.st.seq[p]]; R.st.sel = null; drawRank(); const f = h.querySelector(`.rk[data-pos="${q}"]`); if (f) f.focus(); return; }
+    if (a === "rsel") { const p = +b.dataset.pos; if (R.st.sel === null) R.st.sel = p; else { const v = R.st.seq.splice(R.st.sel, 1)[0]; R.st.seq.splice(p, 0, v); R.st.sel = null; } drawRank(); }
+    if (a === "bpick") { e.stopPropagation(); const i = +b.dataset.i; if (R.st.where[i] !== undefined) { delete R.st.where[i]; R.st.sel = null; } else R.st.sel = R.st.sel === i ? null : i; drawBins(); return; }
+    if (a === "bin" && R.st.sel !== null) { R.st.where[R.st.sel] = +b.dataset.b; R.st.sel = null; drawBins(); }
+    if (a === "ml") { R.st.sel = +b.dataset.i; h.querySelectorAll(".mt[data-pa=ml]").forEach((x) => x.classList.toggle("sel", +x.dataset.i === R.st.sel)); }
+    if (a === "mr" && R.st.sel !== null) tryMatch(R.st.sel, +b.dataset.i);
   });
-  document.addEventListener("keydown", (e) => { if (!R || !location.hash.startsWith("#/learn") || e.target.tagName === "INPUT") return; const h = host();
-    if (e.key === "Enter") { const go = $(".ln-go", h) || $(".ln-res-b .btn.primary", h); if (go && !go.disabled) { e.preventDefault(); go.click(); } }
-    else if (/^[1-9]$/.test(e.key)) { const opts = h.querySelectorAll(".ln-opt, .chip-b:not(:disabled), .ord-bank .ord-line:not(:disabled)"), b = opts[+e.key - 1]; if (b && !b.disabled) b.click(); } });
+  document.addEventListener("keydown", (e) => { if (!R || !location.hash.startsWith("#/learn")) return; const h = host();
+    if (e.target.tagName === "INPUT") { if (e.key === "Enter") { const g = go(); if (g && !g.disabled) { e.preventDefault(); g.click(); } } return; }
+    const onItem = e.target.closest && e.target.closest(".rk, .tok, .ln-opt, .bugline, .rk-mv");
+    if (e.key === "Enter" && !onItem) { const g = go() || $(".log-b .btn.primary", h); if (g && !g.disabled) { e.preventDefault(); g.click(); } }
+    else if (/^[1-9]$/.test(e.key)) { const opts = h.querySelectorAll(".ln-opt, .bugline, .ln-chips .tok:not(:disabled), .ord-bank .tok:not(:disabled)"), b = opts[+e.key - 1]; if (b && !b.disabled) b.click(); }
+    else if ((e.key === "ArrowUp" || e.key === "ArrowDown") && e.target.classList && e.target.classList.contains("rk")) { e.preventDefault(); const btn = e.target.querySelector(e.key === "ArrowUp" ? "[data-pa=rup]" : "[data-pa=rdn]"); if (btn && !btn.disabled) btn.click(); } });
+
+  /* ---------- kit: turn the question bank, generators and cases into session cards ---------- */
+  const numParse = (t) => { const m = String(t).replace(/<[^>]+>/g, "").trim().match(/^([−-]?)\$?([\d,]*\.?\d+)\s*(%|ms|s|GB|MB|k|x|×)?$/); if (!m) return null; const v = parseFloat((m[1] ? "-" : "") + m[2].replace(/,/g, "")); if (!Number.isFinite(v)) return null; const dec = (m[2].split(".")[1] || "").length; return { v, unit: (String(t).includes("$") ? "$ " : "") + (m[3] || ""), tol: dec ? 0.5 * 10 ** -dec + 1e-9 : 0 }; };
+  const fromItem = (item, rng, allowNum = true) => { const q = GR.inst(item, rng), correct = q.options[q.answer], opts = [correct].concat(q.options.filter((_, i) => i !== q.answer));
+    const n = item.gen && allowNum && rng() < 0.55 ? numParse(correct) : null;
+    if (n) return { k: "num", prompt: q.stem, answer: n.v, tol: n.tol, unit: n.unit.trim(), why: q.expl, skill: item.skill, d: item.diff };
+    return { k: "mcq", prompt: q.stem, opts, why: q.expl, skill: item.skill, d: item.diff }; };
+  const bankFor = (skills) => GR.bank.filter((b) => skills.includes(b.skill));
+  const drill = (skills, n = 8) => (rng) => { const b = bankFor(skills), seen = (x) => (GR.state.seen[x.id] ? GR.state.seen[x.id].n : 0);
+    const fixed = rng.shuffle(b.filter((x) => !x.gen)).sort((x, y) => seen(x) - seen(y)), gens = rng.shuffle(b.filter((x) => x.gen));
+    const take = []; while (take.length < n && (fixed.length || gens.length)) { const useGen = gens.length && (!fixed.length || rng() < 0.35); take.push(useGen ? gens.shift() : fixed.shift()); }
+    return take.map((it) => fromItem(it, rng)); };
+  const caseCards = (set) => (rng) => GR.instSet(set, rng).map((p, i) => ({ k: "mcq", prompt: p.stem, stim: (i === 0 ? `<b>${E(set.title)}</b>` : "") + p.stim, opts: [p.options[p.answer]].concat(p.options.filter((_, j) => j !== p.answer)), why: p.expl, skill: p.skill, d: p.diff }));
+  /* split lesson HTML into paragraph-sized cards; tables and code stay with the paragraph before them */
+  const chunks = (html) => { const parts = html.split(/(?<=<\/p>)/).map((x) => x.trim()).filter(Boolean), out = [];
+    parts.forEach((p) => { const isP = /^<p[\s>]/.test(p); if (!isP && out.length) out[out.length - 1] += p; else if (out.length && out[out.length - 1].replace(/<[^>]+>/g, "").length < 140 && isP) out[out.length - 1] += p; else out.push(p); });
+    return out; };
+  const learnCards = (sid) => { const s = GR.skills[sid], l = s.lesson, ch = chunks(l.body), cards = [];
+    ch.forEach((html, i) => { cards.push({ k: "learn", title: i === 0 ? l.title : null, text: html, try: i === ch.length - 1 && l.diagram && GR.diagrams[l.diagram] && !(GR.diagrams[l.diagram].def) ? l.diagram : null, viz: i === ch.length - 1 && l.diagram && GR.diagrams[l.diagram] && GR.diagrams[l.diagram].def ? { id: l.diagram } : null }); });
+    if (l.keys && l.keys.length) cards.push({ k: "learn", title: "Remember", text: `<ul>${l.keys.map((k) => `<li>${k}</li>`).join("")}</ul>` });
+    return cards; };
+  const lessonSession = (sid) => (rng) => { const cards = learnCards(sid), qs = drill([sid], 3)(rng);
+    /* interleave: a check after roughly every two reading cards, the rest at the end */
+    const out = []; let qi = 0; cards.forEach((c, i) => { out.push(c); if (i % 2 === 1 && qi < qs.length - 1 && i < cards.length - 1) out.push(qs[qi++]); }); return out.concat(qs.slice(qi)); };
+
+  GR.pathKit = { fromItem, drill, caseCards, bankFor, numParse, chunks, learnCards, lessonSession };
 
   GR.pathDebug = () => R;   // read-only handle for automated tests
   GR.routes = GR.routes || {};
-  GR.routes.path = (main, cid) => pathView(main, cid || "lc");
+  GR.routes.path = (main, cid) => pathView(main, cid || GR.state.pathLast || "lc");
   GR.routes.learn = (main, cid) => { const id = location.hash.split("/")[3]; if (R && R.node.id === id) return render(); start(cid, id); };
 
-  /* lessons take over the screen, Duolingo-style */
   GR.hooks = GR.hooks || [];
   GR.hooks.push((a) => document.body.classList.toggle("focus", a === "learn"));
-
-  /* dashboard: a big "continue" card */
-  GR.hooks = GR.hooks || [];
-  GR.hooks.push((a) => { if (a) return; const hero = $(".hero"); if (!hero) return; Object.keys(C).forEach((cid) => { const nx = GR.pathNext(cid), c = C[cid], done = c.nodes.length - (nx ? c.nodes.length - nx.k : 0);
-    hero.insertAdjacentHTML("afterend", `<a class="cont" href="${nx ? (nx.node.kind === "chest" ? "#/path/" + cid : `#/learn/${cid}/${nx.node.id}`) : "#/path/" + cid}" style="--pc:${c.color}"><span class="cont-ic">${ICON[nx ? nx.node.kind : "review"]}</span><div><span class="cap">${E(c.title)} · Unit ${nx ? nx.node.unit + 1 : c.units.length} · ${E(nx ? nx.unit.title : "complete")}</span><b>${nx ? (nx.node.kind === "chest" ? "Open your treasure chest" : "Continue: " + E(nx.node.title)) : "Course complete. Practice any lesson."}</b><span class="mbar"><i style="width:${(done / c.nodes.length) * 100}%;background:var(--pc)"></i></span></div><span class="btn primary">${done ? "Continue" : "Start"}</span></a>`); }); });
+  /* dashboard: continue where you left off, plus every program's progress */
+  GR.hooks.push((a) => { if (a) return; const hero = $(".hero"); if (!hero) return; const ids = Object.keys(C); if (!ids.length) return; const cur = C[GR.state.pathLast] ? GR.state.pathLast : ids[0], c = C[cur], nx = GR.pathNext(cur), d = ps(cur).done, done = c.nodes.filter((n) => d[n.id]).length;
+    hero.insertAdjacentHTML("afterend", `<section class="cont" style="--pc:${c.color}"><a class="cont-main" href="${nx ? `#/learn/${cur}/${nx.node.id}` : "#/path/" + cur}"><div><span class="cont-k">${E(c.title)} · Week ${nx ? nx.node.unit + 1 : c.units.length}</span><b>${nx ? E(nx.node.title) : "Program complete"}</b><span class="cont-meta">${nx ? `${KIND[nx.node.kind]} · about ${est(nx.node)} min · ${done}/${c.nodes.length} sessions` : "Replay sessions to chase gold splits"}</span></div><span class="btn primary">${done ? "Continue" : "Start"}</span></a>
+      <div class="cont-all">${ids.map((id) => { const cc = C[id], dd = ps(id).done, f = cc.nodes.filter((n) => dd[n.id]).length; return `<a href="#/path/${id}" class="${id === cur ? "on" : ""}" style="--pc:${cc.color}"><span>${E(cc.short || cc.title)}</span><i><b style="width:${(f / cc.nodes.length) * 100}%"></b></i></a>`; }).join("")}</div></section>`); });
 })();
