@@ -83,8 +83,9 @@
         <div class="prg-bar" aria-label="Progress by week">${weekBar}</div>
         <dl class="prg-stats"><div><dt>Sessions</dt><dd class="num">${Math.min(k, c.nodes.length)}<small>/${c.nodes.length}</small></dd></div><div><dt>Today</dt><dd class="num">${Math.min(tx, 999)}<small>/${GOAL} XP</small></dd></div><div><dt>Streak</dt><dd class="num">${g.streak || 0}<small> days</small></dd></div><div><dt>Gold splits</dt><dd class="num gold">${golds}</dd></div><div><dt>Sum of best</dt><dd class="num">${sob ? fmtT(sob) : "–"}</dd></div></dl></header>
       <div class="prg-body"><div class="sheet">${c.units.map((u) => { const un = c.nodes.filter((x) => x.unit === u.i), f = un.filter((x) => d[x.id]).length;
-          return `<section class="wk ${f === un.length ? "wk-done" : ""}"><div class="wk-l"><span class="wk-n">Week ${u.i + 1}</span><h2>${E(u.title)}</h2><p>${E(u.sub || "")}</p><span class="wk-c num">${f}/${un.length}</span></div><div class="wk-s">${un.map(cell).join("")}</div></section>`; }).join("")}</div>${panel}</div></div>`;
-    const now = main.querySelector(".ses.now"); if (now) setTimeout(() => now.scrollIntoView({ behavior: justDone ? "smooth" : "auto", block: "center" }), justDone ? 500 : 30);
+          return `<section class="wk ${f === un.length ? "wk-done" : ""}"><div class="wk-l"><span class="wk-n num">W${u.i + 1}</span><h2>${E(u.title)}</h2><p>${E(u.sub || "")}</p><span class="wk-c num">${f}/${un.length}</span></div><div class="wk-s">${un.map(cell).join("")}</div></section>`; }).join("")}</div>${panel}</div></div>`;
+    const now = main.querySelector(".ses.now"); const rm = matchMedia("(prefers-reduced-motion:reduce)").matches;
+    if (now && (justDone || !matchMedia("(max-width:980px)").matches)) setTimeout(() => now.scrollIntoView({ behavior: justDone && !rm ? "smooth" : "auto", block: "center" }), justDone ? 500 : 30);
     justDone = null;
   };
 
@@ -190,7 +191,7 @@
     host().innerHTML = `<div class="ln ln-end"><div class="log"><span class="log-stamp ${isGold || stamp === "New PR" ? "gold" : ""}">${stamp}</span><h2>${E(node.title)}</h2><p class="lead">${KIND[node.kind]} · Week ${node.unit + 1}${prev ? ` · run ${(prev.runs || 1) + 1}` : ""}</p>
       <table class="log-t"><tr><th>Time</th><td class="num">${fmtT(secs)}${prev && prev.best ? ` <small class="${secs < prev.best ? "pos" : ""}">best ${fmtT(prev.best)}</small>` : ""}</td></tr><tr><th>Accuracy</th><td class="num">${Math.round(acc * 100)}%${perfect ? ` <small class="pos">flawless</small>` : ""}</td></tr><tr><th>XP</th><td class="num" data-count="${xp}">+0</td></tr><tr><th>Coins</th><td class="num">+${coins}</td></tr></table>
       <div class="row log-b">${nx ? `<button class="btn primary" data-pa="go" data-c="${c.id}" data-id="${nx.node.id}">Next: ${E(nx.node.title)}</button>` : ""}<button class="btn ${nx ? "" : "primary"}" data-pa="topath">Back to the program</button></div></div></div>`;
-    const el = $("[data-count]", host()); let v = 0; const step = () => { v = Math.min(xp, v + Math.max(1, Math.ceil(xp / 25))); el.textContent = "+" + v; if (v < xp) requestAnimationFrame(step); }; requestAnimationFrame(step);
+    const el = $("[data-count]", host()); let v = 0; if (matchMedia("(prefers-reduced-motion:reduce)").matches) { el.textContent = "+" + xp; } else { const step = () => { v = Math.min(xp, v + Math.max(1, Math.ceil(xp / 25))); el.textContent = "+" + v; if (v < xp) requestAnimationFrame(step); }; requestAnimationFrame(step); }
     R = null; setTimeout(() => GR.game.flushLevel(), 1300);
   };
 

@@ -21,7 +21,7 @@ STORY: The learner sees where they are in the program, what today's session hold
 
 FIRST VIEWPORT: Program header (track title, segmented week bar, streak, daily goal, gold count). Below, left: the week grid, each row a week label cell plus session cells (kind tag, short title, stamp, accuracy, best time). Right: sticky Today's session card with exercise breakdown, best to beat, and Begin. On phones the card sits above the grid and cells wrap.
 
-FORM: Training program block fused with speedrun splits (user picked the mix of dealt structures 1 and 2 after the decision page failed to render). seed: c0eafb2aacdef70b4e258be020994dd0 reference unavailable; dealt indices 5, 6, 4.
+FORM: Training program block fused with speedrun splits (user picked the mix of dealt structures 1 and 2 after the decision page failed to render). seed: none (unavailable); dealt indices 5, 6, 4.
 
 Signature interaction: finishing a session stamps its cell (DONE, then accuracy) and, on a beaten split, flips the time to gold. Motion grammar: stamps thud in (scale and rotate once), times count, everything else is still.
 

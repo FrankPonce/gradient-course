@@ -24,7 +24,7 @@
     const ymaxT = el("text", { x: x0 + 6, y: y1 + 14, "font-size": 11, fill: C.mute }, svg);
     loop(host, 7000, (k) => { const n = Math.max(2, 2 + k * (N - 2)), cap0 = 4 * n * n, ymax = Math.max(n * Math.log2(n), cap0);
       const X = (v) => x0 + ((v - 1) / (N - 1)) * (x1 - x0), Y = (v) => y0 - Math.min(1, v / ymax) * (y0 - y1);
-      F.forEach(([, f], i) => { let d = ""; for (let v = 1; v <= n; v += 0.25) d += `${d ? "L" : "M"}${X(v).toFixed(1)},${Y(f(v)).toFixed(1)}`; paths[i].p.setAttribute("d", d); const yy = Y(f(n)); paths[i].t.setAttribute("x", X(n) + 8); paths[i].t.setAttribute("y", Math.max(y1 + 10, yy + 4) + (i === 5 && f(n) > ymax ? 0 : 0)); });
+      F.forEach(([, f], i) => { let d = "", last = 1; for (let v = 1; v <= n; v += 0.25) { last = v; d += `${d ? "L" : "M"}${X(v).toFixed(1)},${Y(f(v)).toFixed(1)}`; if (f(v) > ymax) break; } paths[i].p.setAttribute("d", d); paths[i].t.setAttribute("x", X(last) + 8); paths[i].t.setAttribute("y", Math.max(y1 + 10, Y(f(last)) + 4)); });
       ymaxT.textContent = `top of chart = ${fmt(ymax)} steps`;
       const m = Math.round(n); cap.innerHTML = `n = <b>${m}</b> · O(n) = ${fmt(m)} · O(n²) = ${fmt(m * m)} · O(2ⁿ) = <b class="bad">${fmt(2 ** m)}</b>`; });
   };
@@ -34,7 +34,7 @@
     el("line", { x1: x0, x2: x1, y1: y0, y2: y0, stroke: C.mute }, svg); el("line", { x1: x0, x2: x0, y1: y0, y2: y1, stroke: C.mute }, svg);
     const L = [["3n + 5", (n) => 3 * n + 5, C.or], ["n", (n) => n, C.navy], ["n²", (n) => n * n, C.bad]].map(([l, f, c]) => ({ f, p: el("path", { fill: "none", stroke: c, "stroke-width": 3 }, svg), t: el("text", { "font-size": 13, "font-weight": 700, fill: c }, svg, l) }));
     loop(host, 6000, (k) => { const n = 1 + k * (N - 1), ymax = Math.max(3 * n + 5, Math.min(n * n, 12 * n)) * 1.1, X = (v) => x0 + ((v - 1) / (N - 1)) * (x1 - x0), Y = (v) => y0 - Math.min(1, v / ymax) * (y0 - y1);
-      L.forEach((o) => { let d = ""; for (let v = 1; v <= n; v += 0.5) d += `${d ? "L" : "M"}${X(v).toFixed(1)},${Y(o.f(v)).toFixed(1)}`; o.p.setAttribute("d", d); o.t.setAttribute("x", Math.min(X(n) + 6, x1 - 30)); o.t.setAttribute("y", Math.max(y1 + 12, Y(o.f(n)) - 6)); });
+      L.forEach((o) => { let d = "", last = 1; for (let v = 1; v <= n; v += 0.5) { last = v; d += `${d ? "L" : "M"}${X(v).toFixed(1)},${Y(o.f(v)).toFixed(1)}`; if (o.f(v) > ymax) break; } o.p.setAttribute("d", d); o.t.setAttribute("x", Math.min(X(last) + 6, x1 - 30)); o.t.setAttribute("y", Math.max(y1 + 12, Y(o.f(last)) - 6)); });
       cap.innerHTML = `n = <b>${Math.round(n)}</b> · (3n + 5) ÷ n = <b>${((3 * n + 5) / n).toFixed(2)}</b>, settling at 3: a constant, so it's still <b>O(n)</b> · n² ÷ n = <b class="bad">${Math.round(n)}</b> and climbing`; });
   };
   /* one loop vs a loop inside a loop: n cells vs an n × n grid filling up */

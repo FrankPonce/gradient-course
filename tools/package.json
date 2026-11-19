@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "puppeteer-core": "^23.11.1",
+    "sql.js": "^1.10.3"
+  }
+}
