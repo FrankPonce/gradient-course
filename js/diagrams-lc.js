@@ -65,8 +65,8 @@
   };
 
   /* ---------- the player ---------- */
-  const player = (host, def) => {
-    host.innerHTML = `<div class="av"><div class="av-in"></div><div class="av-main"><svg class="dg-svg av-svg" role="img"></svg><pre class="av-code"></pre></div>
+  const player = (host, def, opts = {}) => {
+    host.innerHTML = `<div class="av${opts.compact ? " compact" : ""}${opts.code ? " withcode" : ""}"><div class="av-in"></div><div class="av-main"><svg class="dg-svg av-svg" role="img"></svg><pre class="av-code"></pre></div>
       <div class="av-note"></div><div class="av-state"></div>
       <div class="av-ctl"><button class="btn sm" data-k="first" title="First step">⏮</button><button class="btn sm" data-k="prev" title="Previous step (←)">◀</button><button class="btn sm primary" data-k="play">Play</button><button class="btn sm" data-k="next" title="Next step (→)">▶</button><button class="btn sm" data-k="last" title="Last step">⏭</button>
         <input type="range" class="av-scrub" min="0" value="0"><span class="av-step"></span><label class="av-spd">speed <input type="range" min="1" max="5" value="3"></label></div></div>`;
@@ -74,7 +74,7 @@
     let frames = [], i = 0, H = 200, timer = null, inp = {};
     const fields = (def.inputs || []).map((f) => { const w = document.createElement("label"); w.className = "av-f"; w.innerHTML = `<span>${E(f.label)}</span>`;
       const el = f.options ? Object.assign(document.createElement("select"), { innerHTML: f.options.map(([v, l]) => `<option value="${E(v)}">${E(l)}</option>`).join("") }) : Object.assign(document.createElement("input"), { type: "text", spellcheck: false });
-      el.value = f.value; if (f.w) el.style.width = f.w + "px"; w.appendChild(el); inBox.appendChild(w); return [f, el]; });
+      el.value = opts.input && opts.input[f.k] !== undefined ? opts.input[f.k] : f.value; if (f.w) el.style.width = f.w + "px"; w.appendChild(el); inBox.appendChild(w); return [f, el]; });
     const runB = Object.assign(document.createElement("button"), { className: "btn sm primary", textContent: "Visualize" }), rndB = Object.assign(document.createElement("button"), { className: "btn sm", textContent: "Random input" });
     if (fields.length) { inBox.append(runB); if (def.random) inBox.append(rndB); }
     const err = document.createElement("span"); err.className = "av-err"; inBox.append(err);
@@ -85,12 +85,13 @@
         (f.panels || []).map((p) => `<div class="av-panel"><span class="cap">${E(p.name)}${p.top ? " · top →" : ""}</span><div>${p.items.length ? p.items.map((it, k) => `<b class="${(p.hl || []).includes(k) ? "on" : ""}">${E(String(it))}</b>`).join("") : `<em>empty</em>`}</div></div>`).join(""); };
     const stop = () => { clearTimeout(timer); timer = null; $("[data-k=play]").textContent = "Play"; };
     const delay = () => [0, 1500, 1000, 650, 380, 180][+$(".av-spd input").value];
-    const tick = () => { if (!host.isConnected) return stop(); if (i >= frames.length - 1) return stop(); i++; show(); timer = setTimeout(tick, delay()); };
+    const tick = () => { if (!host.isConnected) return stop(); if (i >= frames.length - 1) { if (!opts.auto) return stop(); timer = setTimeout(() => { if (!host.isConnected) return stop(); i = 0; show(); timer = setTimeout(tick, delay()); }, 2600); return; } i++; show(); timer = setTimeout(tick, delay()); };
     const build = () => { stop(); err.textContent = "";
       fields.forEach(([f, el]) => (inp[f.k] = el.value));
       try { frames = def.frames(inp); } catch (e) { err.textContent = e.message; return; }
       if (!frames.length) { err.textContent = "Nothing to show for that input."; return; }
-      H = Math.max(...frames.map(measure)); svg.style.aspectRatio = `${W} / ${H}`; i = 0; show(); };
+      H = Math.max(...frames.map(measure)); svg.style.aspectRatio = `${W} / ${H}`; i = 0; show();
+      if (opts.auto) { $("[data-k=play]").textContent = "Pause"; timer = setTimeout(tick, delay() + 600); } };
     host.querySelector(".av-ctl").addEventListener("click", (e) => { const k = e.target.closest("[data-k]"); if (!k) return; const c = k.dataset.k;
       if (c === "play") { if (timer) stop(); else { if (i >= frames.length - 1) i = 0; k.textContent = "Pause"; show(); timer = setTimeout(tick, delay()); } return; }
       stop(); i = c === "first" ? 0 : c === "last" ? frames.length - 1 : c === "prev" ? Math.max(0, i - 1) : Math.min(frames.length - 1, i + 1); show(); });
@@ -98,6 +99,7 @@
     host.tabIndex = 0; host.addEventListener("keydown", (e) => { if (e.target.tagName === "INPUT" && e.target.type === "text") return; if (e.key === "ArrowRight") { e.preventDefault(); stop(); i = Math.min(frames.length - 1, i + 1); show(); } else if (e.key === "ArrowLeft") { e.preventDefault(); stop(); i = Math.max(0, i - 1); show(); } });
     runB.addEventListener("click", build); fields.forEach(([, el]) => el.addEventListener("keydown", (e) => { if (e.key === "Enter") build(); }));
     rndB.addEventListener("click", () => { const v = def.random(GR.rng(Date.now() & 0x7fffffff)); fields.forEach(([f, el]) => { if (v[f.k] !== undefined) el.value = v[f.k]; }); build(); });
+    if (opts.speed) $(".av-spd input").value = opts.speed;
     build();
   };
 
@@ -367,6 +369,9 @@
         const fr = (line, note, cur) => F.push({ line, note, tree: { r: 16, nodes: N.map((n) => ({ id: n.i, label: n.v, x: n.x, d: n.d, tone: n.i === cur ? "cur" : val[n.i] !== undefined ? "ok" : stack.includes(n.i) ? "win" : undefined, sub: val[n.i] !== undefined ? "h=" + val[n.i] : "" })), edges: N.flatMap((n) => [n.l, n.r].filter(Boolean).map((c) => [n.i, c.i, stack.includes(c.i) || val[c.i] !== undefined ? "win" : undefined])) }, panels: [{ name: "call stack", items: stack.map((i) => `depth(${N[i].v})`), hl: [stack.length - 1], top: true }] });
         const go = (n) => { if (!n) return 0; stack.push(n.i); fr(0, `Call depth(${n.v}).`, n.i); const l = go(n.l); fr(3, `Left subtree of ${n.v} has height ${l}.`, n.i); const r = go(n.r); fr(4, `Right subtree of ${n.v} has height ${r}.`, n.i); val[n.i] = 1 + Math.max(l, r); fr(5, `depth(${n.v}) = 1 + max(${l}, ${r}) = <b>${val[n.i]}</b>. Return it and pop the frame.`, n.i); stack.pop(); return val[n.i]; };
         const h = go(N[0]); fr(5, `Maximum depth: <b>${h}</b>. Every node is visited once (O(n)); the stack is as deep as the tree is tall (O(h)).`); return F; } });
+
+  /* watch mode for lessons: auto-playing, looping, no inputs */
+  GR.vizPlay = (host, id, input, o = {}) => { const d = D[id]; if (d && d.def) player(host, d.def, Object.assign({ input, auto: true, compact: true, speed: 2 }, o)); };
 
   /* all LeetCode visualizers in teaching order, for the hub */
   GR.lcViz = ["lc-twoptr", "lc-window", "lc-prefix", "lc-kadane", "lc-bsearch", "lc-monostack", "lc-fastslow", "lc-treedfs", "lc-heap", "lc-trie", "lc-backtrack", "lc-gridbfs", "lc-topo", "lc-unionfind", "lc-dijkstra", "lc-dp1", "lc-lcs", "lc-intervals"];

@@ -87,7 +87,10 @@
     g.best = Math.max(g.best, g.streak); g.lastDay = t; const bonus = 5 * Math.min(g.streak, 7); g.coins += bonus; toast(`<b>Day ${g.streak} streak.</b> +${bonus} coins for showing up.`, "gold"); };
   const gain = (xp, coins = 0) => { const g = G(), before = levelOf(g.xp); touch(); g.xp += xp; g.coins += coins; g.days[day()] = (g.days[day()] || 0) + xp; if (loot) { loot.xp += xp; loot.coins += coins; } quest("xp", xp);
     const after = levelOf(g.xp); if (after > before) levelUp(after); achievements(); changed(); };
-  const levelUp = (l) => { const bonus = 20 + l * 5; G().coins += bonus; sfx("level"); confetti(140); const m = document.createElement("div"); m.className = "lvlup"; m.innerHTML = `<div class="lvlup-in"><div class="cap">Level up</div><div class="lvlup-n">${l}</div><i class="sigil"></i><p>“${E(titleOf(l))}”</p><small>+${bonus} coins${nextTitle(l) ? ` · next title at level ${nextTitle(l)[0]}` : ""}</small><button class="btn primary">Keep going</button></div>`; m.addEventListener("click", () => m.remove()); document.body.appendChild(m); if (G().pet) setTimeout(() => petSay("Level " + l + ". I'm almost proud."), 600); };
+  let pendingLvl = 0;
+  const flushLevel = () => { if (pendingLvl) { const l = pendingLvl; pendingLvl = 0; showLevel(l, 20 + l * 5); } };
+  const levelUp = (l) => { const bonus = 20 + l * 5; G().coins += bonus; if (GR.pathDebug && GR.pathDebug()) { pendingLvl = Math.max(pendingLvl, l); return; } showLevel(l, bonus); };
+  const showLevel = (l, bonus) => { sfx("level"); confetti(140); const m = document.createElement("div"); m.className = "lvlup"; m.innerHTML = `<div class="lvlup-in"><div class="cap">Level up</div><div class="lvlup-n">${l}</div><i class="sigil"></i><p>“${E(titleOf(l))}”</p><small>+${bonus} coins${nextTitle(l) ? ` · next title at level ${nextTitle(l)[0]}` : ""}</small><button class="btn primary">Keep going</button></div>`; m.addEventListener("click", () => m.remove()); document.body.appendChild(m); if (G().pet) setTimeout(() => petSay("Level " + l + ". I'm almost proud."), 600); };
 
   /* ---------- quests ---------- */
   const QUESTS = [["answer", 10, "Answer 10 questions"], ["answer", 20, "Answer 20 questions"], ["correct", 8, "Get 8 answers right"], ["combo", 5, "Hit a 5-answer combo"], ["combo", 8, "Hit an 8-answer combo"], ["session80", 1, "Finish a session with 80% or better"], ["lesson", 1, "Read a lesson you haven't opened before"], ["code", 1, "Submit a coding or SQL solution"], ["xp", 200, "Earn 200 XP"], ["tracks", 2, "Practice in 2 different tracks"], ["hard", 3, "Get 3 hard questions right"]];
@@ -184,5 +187,5 @@
   const init = () => { applyLook(); mountPet(); embers(); quests(); };
 
   const reward = (xp, coins, label) => { if (label) toast(`<b>${label}</b> <em>+${xp} XP · +${coins} coins</em>`, "gold"); float(`+${xp} XP`, "xp"); sfx("coin"); gain(xp, coins); };
-  GR.game = { reward, confetti, answer, sessionStart, sessionEnd, lesson, codeTry, decorateSession, hud, view, acts, afterRoute, init, state: G, levelOf, titleOf, need, price, PETS, TITLES, ACH, toast };
+  GR.game = { reward, confetti, flushLevel, answer, sessionStart, sessionEnd, lesson, codeTry, decorateSession, hud, view, acts, afterRoute, init, state: G, levelOf, titleOf, need, price, PETS, TITLES, ACH, toast };
 })();

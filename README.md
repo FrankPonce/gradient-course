@@ -10,7 +10,7 @@
 ![Backend](https://img.shields.io/badge/backend-none%20·%20localStorage-d8d2c4?style=for-the-badge&labelColor=0c0b0b)
 ![Dependencies](https://img.shields.io/badge/dependencies-0-a8191f?style=for-the-badge&labelColor=0c0b0b)
 
-[**▶ Play it live**](https://frankponce.me/gradient-course/) · [**Overview**](#-overview) · [**Features**](#-features) · [**LeetCode hub**](#-the-leetcode-hub) · [**Game layer**](#-the-game-layer) · [**Tracks**](#-the-ten-tracks) · [**Mastery engine**](#-how-mastery-works) · [**Design**](#-design) · [**Architecture**](#%EF%B8%8F-architecture) · [**Quickstart**](#-quickstart) · [**Adding content**](#%EF%B8%8F-adding-content) · [**Repo map**](#%EF%B8%8F-repository-map)
+[**▶ Play it live**](https://frankponce.me/gradient-course/) · [**Overview**](#-overview) · [**Features**](#-features) · [**LeetCode path**](#-the-leetcode-path) · [**LeetCode hub**](#-the-leetcode-hub) · [**Game layer**](#-the-game-layer) · [**Tracks**](#-the-ten-tracks) · [**Mastery engine**](#-how-mastery-works) · [**Design**](#-design) · [**Architecture**](#%EF%B8%8F-architecture) · [**Quickstart**](#-quickstart) · [**Adding content**](#%EF%B8%8F-adding-content) · [**Repo map**](#%EF%B8%8F-repository-map)
 
 </div>
 
@@ -58,6 +58,19 @@ GRADIENT is a **self-contained, adaptive course** for interview prep and upskill
 | 💾 **Your data** | Progress lives in your browser's localStorage · export and import it as JSON from the Progress page · one-click reset |
 
 ---
+
+## 🦉 The LeetCode path
+
+The north star for GRADIENT is Duolingo: small, satisfying steps you want to keep taking. The coding-interview course is built that way at `#/path/lc`.
+
+| | |
+|---|---|
+| 🛤️ **One path** | 15 units (Big-O → hash maps → two pointers → sliding window → prefix sums → binary search → stacks → linked lists → trees → heaps → graphs → backtracking → DP → greedy and intervals → interview day), 52 lessons, a review and a treasure chest per unit. Each step unlocks the next |
+| 🧩 **Tap, don't type** | Lessons are 4 to 7 cards: concept cards with **auto-playing animations**, then multiple choice, "what does this code do", **fill the blank by tapping code chips**, and **put the lines in order** |
+| 📚 **Classic problems inside** | Two Sum, 3Sum, Container With Most Water, Valid Parentheses, Daily Temperatures, Koko Eating Bananas, Number of Islands, Course Schedule, Coin Change and more are taught in the path, in our own words, block by block |
+| ❤️ **Duolingo mechanics** | 5 hearts per lesson (refill with coins), mistakes come back at the end, in-lesson combos, a "Lesson complete" screen with XP and accuracy, a daily XP goal, chests, and a Continue card on the dashboard. Level-up celebrations wait until the lesson ends |
+
+The written lessons, visualizers you can drive yourself, and the problem tracker below stay available as each unit's Guidebook and as a reference shelf.
 
 ## 🧩 The LeetCode hub
 
@@ -278,6 +291,8 @@ P(id, title, difficulty, skill, { desc, js, py, tests, hint, approach, sol })
 │   ├── coding-lc.js      # 30 interview problems, including HackerRank-style I/O
 │   ├── game.js           # XP, levels, coins, quests, achievements, shop, pets, coin exchange, effects
 │   ├── lc-hub.js         # LeetCode hub: pattern map, tracker, cheat sheets, study plan, mock interview
+│   ├── path.js           # Duolingo-style course engine: path, lesson player (tap exercises), hearts, chests
+│   ├── path-lc.js        # the LeetCode path: 15 units, 52 lessons
 │   └── views.js          # router, dashboard, track, lesson, sessions, results, tests, progress, lab, coding
 ├── assets/
 │   └── banner.jpg
