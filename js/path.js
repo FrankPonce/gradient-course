@@ -40,8 +40,16 @@
   GR.courseAddUnit = (id, u) => { const c = C[id]; if (!c) return; const ui = c.units.length; u.i = ui; const used = new Set(c.nodes.map((n) => n.id));
     u.lessons.forEach((l) => { if (!l.id) { const base = `${id}-${slug(u.title)}-${slug(l.title)}`; let k = base, n = 2; while (used.has(k)) k = `${base}-${n++}`; l.id = k; } used.add(l.id); l.unit = ui; l.kind = l.kind || "learn"; c.nodes.push(l); });
     c.nodes.push({ id: `${id}-${slug(u.title)}-test`, title: `Week ${ui + 1} test`, kind: "test", unit: ui, skill: u.lessons[0] && u.lessons[0].skill, auto: true }); c.units.push(u); };
+  GR.courseAddLessons = (id, unitIndex, lessons) => { const c = C[id]; if (!c || !c.units[unitIndex]) return; const u = c.units[unitIndex], used = new Set(c.nodes.map((n) => n.id));
+    const ti = c.nodes.findIndex((n) => n.unit === unitIndex && n.kind === "test"), at = ti < 0 ? c.nodes.length : ti;
+    lessons.forEach((l, k) => { if (!l.id) { const base = `${id}-${slug(u.title)}-${slug(l.title)}`; let key = base, n = 2; while (used.has(key)) key = `${base}-${n++}`; l.id = key; } used.add(l.id); l.unit = unitIndex; l.kind = l.kind || "problem"; c.nodes.splice(at + k, 0, l); u.lessons.push(l); }); };
   GR.ivKit = { T: (text, viz, title) => ({ k: "learn", text, viz, title }), Q: (prompt, opts, why, code) => ({ k: "mcq", prompt, opts, why, code }), F: (prompt, code, answers, extra, why) => ({ k: "fill", prompt, code, answers, extra, why }), O: (prompt, lines, why, extra) => ({ k: "ord", prompt, lines, why, extra }), RK: (prompt, items, why) => ({ k: "rank", prompt, items, why }), M: (prompt, pairs, why) => ({ k: "match", prompt, pairs, why }), BN: (prompt, bins, items, why) => ({ k: "bins", prompt, bins, items, why }), BUG: (prompt, lines, bug, why) => ({ k: "bug", prompt, lines, bug, why }), NUM: (prompt, answer, why, code, tol, unit) => ({ k: "num", prompt, answer, why, code, tol, unit }),
-    L: (title, skill, cards, kind) => ({ title, skill, cards, kind }) };
+    L: (title, skill, cards, kind) => ({ title, skill, cards, kind }),
+    SAY: (prompt, model, checks) => ({ k: "say", prompt, model, checks }),
+    /* v = { js: [fn, starter, sol], py: [fn, starter, sol] }: both languages share the same tests */
+    CODE: (prompt, v, tests, cmp, why) => { const o = {}; Object.keys(v).forEach((l) => { o[l] = { fn: v[l][0], starter: v[l][1], sol: v[l][2] }; }); return { k: "code", prompt, v: o, tests, cmp, why }; },
+    /* an interviewer's escalating follow-ups: each is a multiple-choice card labeled with its step */
+    CH: (...qs) => qs.map((q, i) => (i ? Object.assign({}, q, { prompt: `<span class="ch-tag">Follow-up ${i}</span> ${q.prompt}` }) : q)) };
   const ps = (cid) => { const p = (GR.state.path = GR.state.path || {}); return (p[cid] = p[cid] || { done: {} }); };
   const curIdx = (c) => { const d = ps(c.id).done, k = c.nodes.findIndex((n) => !d[n.id]); return k < 0 ? c.nodes.length : k; };
   const today = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`; };
@@ -135,15 +143,20 @@
       body = `<p class="ln-prompt">${c.prompt}</p><div class="bins-pool" data-drop="pool"></div><div class="bins" style="--n:${c.bins.length}">${c.bins.map((b, j) => `<div class="bin" data-pa="bin" data-drop="bin" data-b="${j}"><span class="bin-h">${E(b)}</span><div class="bin-in"></div></div>`).join("")}</div>`; }
     else if (c.k === "bug") { body = `<p class="ln-prompt">${c.prompt}</p><div class="bugcode" role="radiogroup">${c.lines.map((l, j) => `<button class="bugline" role="radio" aria-checked="false" data-pa="bsel" data-j="${j}"><span class="ln-no">${j + 1}</span><code>${E(l) || " "}</code></button>`).join("")}</div>`; }
     else if (c.k === "num") { body = `<p class="ln-prompt">${c.prompt}</p>${c.code ? codeHtml(c.code) : ""}<label class="numin"><input type="text" inputmode="decimal" autocomplete="off" spellcheck="false" aria-label="Your answer" placeholder="Your answer">${c.unit ? `<span>${E(c.unit)}</span>` : ""}</label>`; }
+    else if (c.k === "say") { body = `<p class="ln-prompt">${c.prompt}</p><p class="say-tip">Answer out loud first, or type a few lines. Then compare.</p><textarea class="say-box" rows="4" spellcheck="false" aria-label="Your answer (optional)" placeholder="Your answer…"></textarea><button class="btn" data-pa="reveal">Reveal the model answer</button><div class="say-rev" hidden><div class="say-model">${c.model}</div><p class="say-q">Tick what you covered:</p>${c.checks.map((t, j) => `<label class="say-c"><input type="checkbox" data-j="${j}"><span>${t}</span></label>`).join("")}</div>`; }
+    else if (c.k === "code") { const lang = codeLang(c); R.st.lang = lang; R.st.buf = {}; const v = c.v[lang];
+      body = `<p class="ln-prompt">${c.prompt}</p><div class="code-lang" role="group" aria-label="Language">${["py", "js"].filter((l) => c.v[l]).map((l) => `<button class="btn sm ${l === lang ? "on" : ""}" data-pa="lang" data-l="${l}">${l === "py" ? "Python" : "JavaScript"}</button>`).join("")}</div><textarea class="code-box" rows="${Math.min(18, (v.starter.match(/\n/g) || []).length + 3)}" spellcheck="false" autocapitalize="off" aria-label="Your code">${E(v.starter)}</textarea><div class="code-row"><button class="btn" data-pa="runcode">Run tests</button><button class="btn" data-pa="giveup">Show the solution</button></div><div class="code-out" aria-live="polite"></div>`; }
     const label = c.k === "learn" ? "Continue" : c.k === "match" ? "Match all pairs" : c.k === "rank" ? "Check order" : "Check";
     h.innerHTML = `<div class="ln" data-kind="${c.k}">${top()}<div class="ln-body">${body}</div>
       <div class="ln-foot"><div class="ln-verdict" aria-live="polite"></div><button class="btn primary ln-go" data-pa="go2" ${c.k === "learn" || c.k === "rank" ? "" : "disabled"}>${label}</button></div></div>`;
     if (c.k === "learn") { if (c.viz) GR.vizPlay($(".ln-viz", h), c.viz.id, c.viz.input || {}, { code: !!c.viz.code }); if (c.anim) GR.anim($(".ln-viz", h), c.anim);
       if (c.try) { const d = $(".ln-try", h); d.addEventListener("toggle", () => { const th = $(".ln-tryhost", h); if (d.open && !th.childElementCount && GR.diagrams[c.try]) GR.diagrams[c.try].mount(th); }); } }
     if (c.k === "ord") drawOrd(); if (c.k === "rank") drawRank(); if (c.k === "bins") drawBins();
+    if (c.k === "code") { const ta = $(".code-box", h); ta.addEventListener("keydown", (e) => { if (e.key === "Tab") { e.preventDefault(); const a = ta.selectionStart; ta.setRangeText("  ", a, ta.selectionEnd, "end"); } }); }
     if (c.k === "num") { const inp = $(".numin input", h); inp.addEventListener("input", () => (go().disabled = !inp.value.trim())); setTimeout(() => inp.focus(), 60); }
     window.scrollTo(0, 0);
   };
+  const codeLang = (c) => { const pref = localStorage.getItem("gradient.codelang") || "py"; return c.v[pref] ? pref : c.v.py ? "py" : "js"; };
   const go = () => $(".ln-go", host());
   const drawOrd = () => { const c = R.items[R.pos].card, h = host();
     $(".ord-ans", h).innerHTML = R.st.seq.length ? R.st.seq.map((j, k) => `<button class="tok line in" data-pa="unpick" data-k="${k}">${E(R.st.bank[j].t)}</button>`).join("") : `<span class="hint">Tap or drag the lines into order.</span>`;
@@ -164,13 +177,15 @@
     if (c.k === "match") return R.st.miss === 0;
     if (c.k === "bins") return c.items.every((it, i) => R.st.where[i] === it[1]);
     if (c.k === "bug") return R.st.sel === c.bug;
+    if (c.k === "say") return Array.from(h.querySelectorAll(".say-c input")).filter((x) => x.checked).length >= Math.ceil(c.checks.length * 0.6);
+    if (c.k === "code") return !!R.st.passed;
     if (c.k === "num") { const v = parseFloat(String($(".numin input", h).value).replace(/[, ]/g, "")); return Number.isFinite(v) && Math.abs(v - c.answer) <= (c.tol || 0); }
     return true; };
-  const answerText = (c) => ({ mcq: () => c.opts[0], fill: () => c.answers.map((a) => `<code>${E(a)}</code>`).join(", "), ord: () => `<pre class="ln-code sm">${E(c.lines.join("\n"))}</pre>`, rank: () => c.items.join(" → "), match: () => "", bins: () => c.bins.map((b, j) => `<b>${E(b)}</b>: ${c.items.filter((it) => it[1] === j).map((it) => it[0]).join(", ")}`).join("<br>"), bug: () => `Line ${c.bug + 1}: <code>${E(c.lines[c.bug].trim())}</code>`, num: () => `<b>${c.answer.toLocaleString("en-US")}</b>${c.unit ? " " + E(c.unit) : ""}` }[c.k] || (() => ""))();
+  const answerText = (c) => ({ mcq: () => c.opts[0], fill: () => c.answers.map((a) => `<code>${E(a)}</code>`).join(", "), ord: () => `<pre class="ln-code sm">${E(c.lines.join("\n"))}</pre>`, rank: () => c.items.join(" → "), match: () => "", bins: () => c.bins.map((b, j) => `<b>${E(b)}</b>: ${c.items.filter((it) => it[1] === j).map((it) => it[0]).join(", ")}`).join("<br>"), say: () => `<div class="say-model">${c.model}</div>`, code: () => `<pre class="ln-code sm">${E(c.v[R.st.lang || codeLang(c)].sol || "")}</pre>`, bug: () => `Line ${c.bug + 1}: <code>${E(c.lines[c.bug].trim())}</code>`, num: () => `<b>${c.answer.toLocaleString("en-US")}</b>${c.unit ? " " + E(c.unit) : ""}` }[c.k] || (() => ""))();
   const check = () => {
     const it = R.items[R.pos], c = it.card, ok = grade(), h = host(); R.st.answered = true;
     const first = !R.missed.has(it.i) && !R.cleared.has(it.i); if (first) R.graded++;
-    if (ok) { R.cleared.add(it.i); R.streak++; if (first) R.firstOk++; } else { R.missed.add(it.i); R.streak = 0; R.lives--; R.items.push({ card: c, i: it.i }); }
+    if (ok) { R.cleared.add(it.i); R.streak++; if (first) R.firstOk++; } else { R.missed.add(it.i); R.streak = 0; if (c.k !== "say") R.lives--; R.items.push({ card: c, i: it.i }); }
     const sk = c.skill || R.node.skill; if (sk && GR.skills[sk]) { GR.record({ skill: sk, diff: c.d || 2, also: [], gen: true }, ok); GR.game.answer({ skill: sk, diff: c.d || 2 }, ok); } GR.save();
     if (c.k === "mcq") h.querySelectorAll(".ln-opt").forEach((b, j) => { b.disabled = true; if (R.st.order[j] === 0) b.classList.add("right"); else if (j === R.st.sel) b.classList.add("wrong"); });
     if (c.k === "fill") { drawFill(); h.querySelectorAll(".slot").forEach((s, k) => { s.disabled = true; s.classList.add(R.st.chips[R.st.slots[k]].t === c.answers[k] ? "right" : "wrong"); }); }
@@ -259,6 +274,15 @@
     if (a === "go2") { const c = R.items[R.pos].card; if (R.st.answered || c.k === "learn") return next(); return check(); }
     if (R.st.answered) return;
     const h = host();
+    if (a === "lang") { const c = R.items[R.pos].card, l = b.dataset.l, ta = $(".code-box", h); if (l === R.st.lang) return; R.st.buf[R.st.lang] = ta.value; R.st.lang = l; localStorage.setItem("gradient.codelang", l); ta.value = R.st.buf[l] !== undefined ? R.st.buf[l] : c.v[l].starter; R.st.passed = false; go().disabled = true; $(".code-out", h).innerHTML = ""; h.querySelectorAll(".code-lang .btn").forEach((x) => x.classList.toggle("on", x.dataset.l === l)); return; }
+    if (a === "reveal") { $(".say-rev", h).hidden = false; b.hidden = true; go().disabled = false; return; }
+    if (a === "giveup") { R.st.passed = false; R.st.gaveUp = true; go().disabled = false; $(".code-out", h).innerHTML = `<p class="muted">Press Check to see the solution. This one comes back later in the session.</p>`; return; }
+    if (a === "runcode") { const c = R.items[R.pos].card, out = $(".code-out", h), code = $(".code-box", h).value, lang = R.st.lang, p = { tests: c.tests, cmp: c.cmp || "exact", [lang]: [c.v[lang].fn] }; b.disabled = true; out.innerHTML = `<p class="muted">Running…</p>`;
+      GR.runCode(p, lang, code, (m) => (out.innerHTML = `<p class="muted">${E(m)}</p>`)).then((d) => { b.disabled = false; if (!R || R.items[R.pos].card !== c) return;
+        if (d.error) { R.st.passed = false; out.innerHTML = `<p class="code-err">${E(d.error)}</p>`; return; }
+        const ok = d.results.filter((r) => r.pass).length; R.st.passed = ok === d.results.length; go().disabled = !R.st.passed;
+        const bad = d.results.find((r) => !r.pass);
+        out.innerHTML = `<p class="${R.st.passed ? "code-ok" : "code-err"}"><b>${ok}/${d.results.length}</b> tests pass.${R.st.passed ? " Press Check." : ""}</p>${bad ? `<pre class="ln-code sm">input: ${E(JSON.stringify(bad.args))}\nexpected: ${E(JSON.stringify(bad.exp))}\n${bad.err ? "error: " + E(bad.err) : "got: " + E(JSON.stringify(bad.got))}</pre>` : ""}`; }); return; }
     if (a === "sel") { R.st.sel = +b.dataset.j; h.querySelectorAll(".ln-opt").forEach((x, j) => { x.classList.toggle("sel", j === R.st.sel); x.setAttribute("aria-checked", j === R.st.sel); }); go().disabled = false; }
     if (a === "bsel") { R.st.sel = +b.dataset.j; h.querySelectorAll(".bugline").forEach((x, j) => { x.classList.toggle("sel", j === R.st.sel); x.setAttribute("aria-checked", j === R.st.sel); }); go().disabled = false; }
     if (a === "chip") { const k = R.st.slots.indexOf(null); if (k < 0) return; R.st.slots[k] = +b.dataset.j; drawFill(); }
@@ -273,6 +297,7 @@
     if (a === "mr" && R.st.sel !== null) tryMatch(R.st.sel, +b.dataset.i);
   });
   document.addEventListener("keydown", (e) => { if (!R || !location.hash.startsWith("#/learn")) return; const h = host();
+    if (e.target.tagName === "TEXTAREA") return;
     if (e.target.tagName === "INPUT") { if (e.key === "Enter") { const g = go(); if (g && !g.disabled) { e.preventDefault(); g.click(); } } return; }
     const onItem = e.target.closest && e.target.closest(".rk, .tok, .ln-opt, .bugline, .rk-mv");
     if (e.key === "Enter" && !onItem) { const g = go() || $(".log-b .btn.primary", h); if (g && !g.disabled) { e.preventDefault(); g.click(); } }

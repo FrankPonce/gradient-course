@@ -88,7 +88,7 @@
   const vDash = () => {
     const t = totals(), tests = GR.state.sessions.filter((s) => s.type === "mock"), recent = GR.state.sessions.slice(-5).reverse();
     main().innerHTML = `
-      <header class="hero"><div><div class="cap"><b>G</b>ot <b>R</b>ejected <b>A</b>gain. <b>D</b>ecided <b>I</b>’m (an) <b>E</b>x-larper <b>N</b>ow. <b>T</b>raining.</div><h1>AI, data and engineering,<br>one skill at a time.</h1></div>
+      <header class="hero"><div><div class="cap"><b>G</b>ot <b>R</b>ejected <b>A</b>gain, <b>D</b>ecided <b>I</b>’m an <b>E</b>x-Larper <b>N</b>ow. <b>T</b>raining <b>A</b>rc <b>I</b>nitiating…</div><h1>AI, data and engineering,<br>one skill at a time.</h1></div>
         <div class="stats"><div><b>${t.n}</b><span>questions answered</span></div><div><b>${t.n ? pct(t.c / t.n) + "%" : "–"}</b><span>accuracy</span></div><div><b>${t.started}<small>/${t.all}</small></b><span>skills started</span></div><div><b>${t.mastered}</b><span>mastered</span></div><div><b>${tests.length}</b><span>mock tests</span></div></div></header>
       ${t.n ? "" : `<div class="callout"><div><b>New here? Start with the placement diagnostic.</b><br><span class="muted">30 questions across every track. It seeds your skill map so recommendations are useful from the first day.</span></div><button class="btn primary" data-act="diagnostic">Take the diagnostic</button></div>`}
       <div class="grid2">
@@ -251,7 +251,7 @@
   const nav = () => { const h = location.hash || "#/", cur = GR.courses && GR.courses[GR.state.pathLast] ? GR.courses[GR.state.pathLast] : null, inTrack = /^#\/(track|path|lesson|learn)\//.test(h);
     const link = (href, on, ico, label) => `<a href="${href}" class="${on ? "on" : ""}" title="${label}">${NI[ico]}<span class="nt">${label}</span></a>`, tool = (href, on, ico, label) => `<a href="${href}" class="${on ? "on" : ""}" title="${label}" aria-label="${label}">${NI[ico]}</a>`;
     $("#nav").innerHTML = `
-      <a class="brand" href="#/"><svg class="mark" width="34" height="34" viewBox="-2 -2 36 36" aria-hidden="true"><path d="M3 24 C10 24 10 10 16 10 S22 20 26 8" fill="none" stroke="var(--ink)" stroke-width="2.4" stroke-linecap="round"/><path d="M26 0 L27.3 6.7 L34 8 L27.3 9.3 L26 16 L24.7 9.3 L18 8 L24.7 6.7 Z" fill="var(--or)"/><circle cx="26" cy="8" r="1.3" fill="var(--bg)"/></svg><span class="bn"><b>GRADIENT</b><small>Got Rejected Again. Decided I’m (an) Ex-larper Now. Training.</small></span></a>
+      <a class="brand" href="#/"><svg class="mark" width="34" height="34" viewBox="-2 -2 36 36" aria-hidden="true"><path d="M3 24 C10 24 10 10 16 10 S22 20 26 8" fill="none" stroke="var(--ink)" stroke-width="2.4" stroke-linecap="round"/><path d="M26 0 L27.3 6.7 L34 8 L27.3 9.3 L26 16 L24.7 9.3 L18 8 L24.7 6.7 Z" fill="var(--or)"/><circle cx="26" cy="8" r="1.3" fill="var(--bg)"/></svg><span class="bn"><b>GRADIENT<i class="ai">AI</i></b><small>Got Rejected Again, Decided I’m an Ex-Larper Now. Training Arc Initiating…</small></span></a>
       ${GR.game.hud()}
       ${GR.session ? `<a class="resume" href="#/session">Resume: ${E(GR.session.title)}</a>` : ""}
       ${link("#/", h === "#/", "home", "Home")}

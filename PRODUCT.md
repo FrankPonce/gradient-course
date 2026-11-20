@@ -10,7 +10,7 @@ web
 Job seekers and career-switchers preparing for data science, AI/ML and software engineering interviews (confirmed: public product). The founder is the first user, but the product must work for strangers who arrive with no context. They study in two modes: short sessions on a phone (commute, bed, between tasks) and longer sessions on a laptop. Lessons must feel good one-handed on a phone.
 
 ## Product Purpose
-GRADIENT is a self-contained, adaptive interview-prep course: ten tracks (Foundations, Coding Interviews, ML, Deep Learning & GenAI, Agentic AI, Data Science, Business Analytics, Software Engineering, ML System Design, Investing & Trading). Every answer updates a per-skill mastery estimate. Success means people come back daily, progress through small lessons without feeling overwhelmed, and eventually solve hard (LeetCode Hard level) interview problems and pass real interviews.
+Gradient.ai (GRADIENTAI) is a self-contained, adaptive interview-prep course: ten tracks (Foundations, Coding Interviews, ML, Deep Learning & GenAI, Agentic AI, Data Science, Business Analytics, Software Engineering, ML System Design, Investing & Trading). Every answer updates a per-skill mastery estimate. Success means people come back daily, progress through small lessons without feeling overwhelmed, and eventually solve hard (LeetCode Hard level) interview problems and pass real interviews.
 
 ## Positioning
 A habit-forming, game-like learning path for technical interviews, modeled on the mechanics of language-learning apps (small steps, unlocks, streaks, lives, daily goals) but with its own identity and no visual imitation of any specific app. Content is taught through watch-first animations and tap/drag exercises rather than long reading. Everything runs in the browser with no account and no backend.
@@ -29,7 +29,7 @@ A habit-forming, game-like learning path for technical interviews, modeled on th
 
 ## Brand Commitments
 - Gothic black with blood-red accent (#A8191F family), shared with the owner's other work (Stray Club, frankponce.dev).
-- The self-roasting joke voice: the "Got Rejected Again. Decided I'm (an) Ex-larper Now. Training." backronym and level titles such as "Google won't even look at your resume".
+- The self-roasting joke voice: the "Got Rejected Again, Decided I'm an Ex-Larper Now. Training Arc Initiating..." backronym and level titles such as "Google won't even look at your resume".
 - The game economy is part of the product: XP, levels, coins, streaks, quests, achievements, the shop, cursed pet companions (Void, Nyx, Boo-lean, Overfit, Null) and the coin exchange.
 - Not binding (open to change): the blackletter display type and the sigil ornaments.
 

@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="assets/banner.jpg" alt="GRADIENT: Got Rejected Again. Decided I'm (an) Ex-larper Now. Training. An adaptive AI, data and engineering course." width="100%">
+<img src="assets/banner.jpg" alt="GRADIENT: Got Rejected Again, Decided I'm an Ex-Larper Now. Training Arc Initiating... An adaptive AI, data and engineering course." width="100%">
 
 <br>
 
@@ -20,7 +20,7 @@
 
 GRADIENT is a **self-contained, adaptive course** for interview prep and upskilling across coding interviews (LeetCode and HackerRank), machine learning, generative AI, agentic AI, ML system design, statistics, analytics, software engineering and investing, with a gentle Foundations track to start from. It's also a game: XP, levels with increasingly unhinged career titles, coins, streaks, daily quests, a shop with cursed pets, and a fake stock exchange for your coins. Every answer updates a per-skill ability estimate, and the course steers you to whatever needs work next: lesson, practice set, targeted drill or full mock test.
 
-> *Got Rejected Again. Decided I'm (an) Ex-larper Now. Training.* The name is the plan.
+> *Got Rejected Again, Decided I'm an Ex-Larper Now. Training Arc Initiating...* The name is the plan.
 
 | | |
 |---|---|
@@ -306,5 +306,5 @@ P(id, title, difficulty, skill, { desc, js, py, tests, hint, approach, sol })
 ---
 
 <div align="center">
-<sub>Built with stubbornness and a lot of rejection emails. <b>GRADIENT</b> · keep descending.</sub>
+<sub>Built with stubbornness and a lot of rejection emails. <b>Gradient.ai</b> · keep descending.</sub>
 </div>

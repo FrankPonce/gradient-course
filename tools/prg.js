@@ -16,17 +16,20 @@ const puppeteer = require("puppeteer-core"), O = require("path").join(process.en
     if (c.k === "match") { for (let i = 0; i < c.pairs.length; i++) { document.querySelector(`.mt[data-pa=ml][data-i="${i}"]`).click(); document.querySelector(`.mt[data-pa=mr][data-i="${i}"]`).click(); } return "match"; }
     if (c.k === "bins") c.items.forEach((it, i) => { document.querySelector(`.bchip[data-i="${i}"]`).click(); document.querySelector(`.bin[data-b="${it[1]}"]`).click(); });
     if (c.k === "bug") $$(".bugline")[c.bug].click();
+    if (c.k === "say") { document.querySelector("[data-pa=reveal]").click(); [...document.querySelectorAll(".say-c input")].forEach((x) => (x.checked = true)); }
+    if (c.k === "code") { const l = R.st.lang; document.querySelector(".code-box").value = c.v[l].sol; document.querySelector("[data-pa=runcode]").click(); return "code"; }
     if (c.k === "num") { const inp = $(".numin input"); inp.value = String(c.answer); inp.dispatchEvent(new Event("input", { bubbles: true })); }
     return c.k; });
   const play = async (tag) => { const seen = {}; let n = 0;
     while (await p.evaluate(() => !!GR.pathDebug())) { const k = await solve(); await wait(120);
+      if (k === "code") await wait(2500);
       if (k !== "learn" && k !== "match") { if (!seen[k]) await p.screenshot({ path: O + `q_${tag}_${k}_a.png` }); await p.evaluate(() => document.querySelector(".ln-go").click()); await wait(350); }
       if (k !== "learn" && !seen[k]) { seen[k] = 1; await clean(); await p.screenshot({ path: O + `q_${tag}_${k}_b.png` }); }
       if (k === "learn" && !seen.learn) { seen.learn = 1; await wait(1800); await p.screenshot({ path: O + `q_${tag}_learn.png` }); }
       await p.evaluate(() => { const g = document.querySelector(".ln-go"); if (g && !g.disabled) g.click(); }); await wait(220); if (++n > 80) break; }
     return Object.keys(seen); };
   const runNode = async (cid, id, tag) => { await p.goto(`http://127.0.0.1:5190/#/learn/${cid}/${id}`); await wait(700); const k = await play(tag); await wait(500); await clean(); return k; };
-  await p.evaluate(() => { GR.state.path = {}; GR.save(); });
+  await p.evaluate(() => { GR.state.path = {}; localStorage.setItem("gradient.codelang", "js"); GR.save(); });
   const c = await p.evaluate(() => GR.courses.lc.nodes.slice(0, 8).map((n) => n.id + "|" + n.title + "|" + n.kind));
   console.log("LC week 1 sessions:", c.join("  "));
   let all = [];

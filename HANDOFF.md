@@ -1,10 +1,10 @@
-# GRADIENT handoff
+# Gradient.ai handoff
 
 Last updated: 2026-11-19
 
 ## Project description
 
-GRADIENT ("Got Rejected Again. Decided I'm (an) Ex-larper Now. Training.") is a self-contained, adaptive interview-prep course and game. It covers ten tracks:
+Gradient.ai, or GRADIENTAI ("Got Rejected Again, Decided I'm an Ex-Larper Now. Training Arc Initiating...") is a self-contained, adaptive interview-prep course and game. It covers ten tracks:
 
 - Foundations
 - Coding Interviews (LeetCode/HackerRank)
