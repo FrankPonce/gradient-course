@@ -193,3 +193,14 @@ Drift present in the build and deliberately not made into rules:
 - Gold is hard-coded as `#C9933A` in `.toast`, `.loot`, and `anim.js` (`C.gold`) instead of `--gold`; the two golds differ (`#E0A63C` token).
 - `.wk-n` references an undefined `--mono` variable and falls back to the generic `monospace` rather than JetBrains Mono.
 - Legacy `.opt.right/.wrong` (quiz sessions) match the verdict rule; `.expl.ok/.no` and `.rev` marks still use green for correct.
+
+## Shop themes (dark mode only)
+
+Bought in the shop; each swaps surfaces, accent and the display font (`--goth`). Fonts load from Google Fonts only when the theme is chosen. The user asked for themes that change fonts.
+
+- Crypt (default): Gothic Mix
+- Abyss: Cinzel, navy and ice blue
+- Forest: IM Fell English, moss and lantern green
+- Ember: Pirata One, charcoal and furnace orange
+- Velvet: Cormorant Garamond, purple and candle gold
+- Ash: Gothic Mix, grayscale with a bone accent

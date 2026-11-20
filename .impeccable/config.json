@@ -1,0 +1,14 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "design-system-font",
+        "value": "${fam}",
+        "createdAt": "2026-11-20T01:34:29.502Z",
+        "reason": "Claude: template placeholder in game.js loadFont, not a font name; real theme fonts are documented in DESIGN.md"
+      }
+    ]
+  }
+}
